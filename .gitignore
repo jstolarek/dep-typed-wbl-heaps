@@ -1,7 +1,6 @@
-dist
-cabal-dev
+# Haskell
 *.o
 *.hi
-*.chi
-*.chs.h
-.virthualenv
+
+# Agda
+*.agdai
