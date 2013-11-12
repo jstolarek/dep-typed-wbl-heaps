@@ -10,10 +10,16 @@
 
 module Basics where
 
+-- BOOL AND CONDITIONALS
 data Bool : Set where
   false : Bool
   true  : Bool
 
+if_then_else_ : {A : Set} → Bool → A → A → A
+if true  then x else _ = x
+if false then _ else y = y
+
+-- NATURAL NUMBERS
 data Nat : Set where
   zero : Nat
   suc  : Nat → Nat
@@ -26,15 +32,24 @@ n     < zero  = false
 zero  < suc n = true
 suc n < suc m = n < m
 
-_≥_ : Nat → Nat → Bool
-n     ≥ zero  = true
-zero  ≥ suc m = false
-suc n ≥ suc m = n ≥ m
+data _≥_ : Nat → Nat → Set where
+  ge0 : {y : Nat} → y ≥ zero
+  geS : {x : Nat} {y : Nat} → x ≥ y → suc x ≥ suc y
 
-min : Nat → Nat → Nat
-min n m with n ≥ m
-min n m | true  = m
-min n m | false = n
+data Order : Nat → Nat → Set where
+  ge : {x : Nat} {y : Nat} → x ≥ y → Order x y
+  le : {x : Nat} {y : Nat} → y ≥ x → Order x y
+
+order : (x : Nat) → (y : Nat) → Order x y
+order x       zero    = ge ge0
+order zero    (suc y) = le ge0
+order (suc x) (suc y) with order x y
+order (suc x) (suc y) | ge xgey = ge (geS xgey)
+order (suc x) (suc y) | le ygex = le (geS ygex)
+
+min : {m n : Nat} → Order m n → Nat
+min {m} {n} (ge _) = n
+min {m} {n} (le _) = m
 
 infixl 4 _<_ _≥_
 
@@ -42,39 +57,28 @@ _+_ : Nat → Nat → Nat
 zero  + m = m
 suc n + m = suc (n + m)
 
-if_then_else_ : {A : Set} → Bool → A → A → A
-if true  then x else _ = x
-if false then _ else y = y
+data _≡_ {S : Set} (s : S) : S → Set where
+  refl : s ≡ s
 
--- CODE BELOW IS NOT MINE
+infixl 1 _≡_
 
--- taken from Conor McBride's "Dependently typed metaprogramming (in Agda)
--- https://github.com/pigworker/MetaprogAgda/blob/master/Basics.agda
+sym : {A : Set} → {a b : A} → a ≡ b → b ≡ a
+sym refl = refl
 
-postulate
-      Level : Set
-      lzero : Level
-      lsuc  : Level -> Level
-      lmax  : Level -> Level -> Level
-
-{-# BUILTIN LEVEL Level #-}
-{-# BUILTIN LEVELZERO lzero #-}
-{-# BUILTIN LEVELSUC lsuc #-}
-{-# BUILTIN LEVELMAX lmax #-}
-
-data _==_ {l}{X : Set l}(x : X) : X -> Set l where
-  refl : x == x
-infix 1 _==_
-
-{-# BUILTIN EQUALITY _==_ #-}
-{-# BUILTIN REFL refl #-}
-
--- taken from Relation/Binary/PropositionalEquality
-cong : ∀ {a b} {A : Set a} {B : Set b}
-       (f : A → B) {x y} → x == y → f x == f y
+cong : {A B : Set} (f : A → B) → ∀ {x y} → x ≡ y → f x ≡ f y
 cong f refl = refl
 
--- taken from http://stackoverflow.com/questions/12949323/agda-type-checking-and-commutativity-associativity-of
-rightIdentity : (n : Nat) -> (n + zero) == n
-rightIdentity zero = refl
-rightIdentity (suc n) = cong suc (rightIdentity n)
+subst : {A : Set}(P : A → Set) → {a b : A} → a ≡ b → P a → P b
+subst prp refl p = p
+
++0 : (n : Nat) → n + zero ≡ n
++0 zero    = refl
++0 (suc n) = cong suc (+0 n)
+
++suc : (m n : Nat) → suc (m + n) ≡ m + (suc n)
++suc zero n = refl
++suc (suc m) n = cong suc (+suc m n)
+
+≥suc : {m n : Nat} → m ≡ n → m ≥ n
+≥suc {zero} {zero} refl        = ge0
+≥suc {.(suc n)} {(suc n)} refl = geS (≥suc {n} {n} refl)
