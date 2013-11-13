@@ -87,6 +87,20 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
+          with order l2-rank (r2-rank + suc (l1-rank + r1-rank))
+wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
+          (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
+          | false
+          | ge x
+          = subst (WBLHeap A)
+                  (cong suc {!!})
+                  (wblhNode x p2 x2 l2 (wblhMerge r2 (wblhNode l1ger1 p1 x1 l1 r1)))
+wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
+          (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
+          | false
+          | le x
           = {!!}
 {-
 wblhDeleteMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → WBLHeap A ???
