@@ -94,7 +94,34 @@ subst2 refl p = p
 +ac m n l = trans (+comm (n + l) m) (sym (+assoc m n l))
 
 +x : (a b : Nat) → a + suc b ≡ b + suc a
-+x a b = {!!} --cong (+suc a b) (cong suc (+comm a b))
++x a b = trans (sym (+suc a b)) (trans (cong suc (+comm a b)) (+suc b a))
 
 +case3 : (m n l : Nat) → m + (n + suc l) ≡ l + suc (m + n)
 +case3 m n l = trans (sym (+assoc m n (suc l))) (+x (m + n) l)
+
++n : {a b c : Nat} → a ≡ b → a + c ≡ b + c
++n refl = refl
+
++case4 : (a b c : Nat) → (a + suc b) + c ≡ b + suc (c + a)
++case4 a b c = trans (sym ((cong (λ n → n + c) (+suc a b))))
+              (trans (cong suc
+              (trans (cong (λ n → n + c) (+comm a b))
+              (trans (+assoc b a c) (cong (λ n → b + n) (+comm a c))))) (+suc b (c + a)))
+
+-- This:   sym ((cong (λ n → n + c) (+suc a b)))
+-- proves: (a + suc b) + c ≡ suc ((a + b) + c)
+
+-- This:   (three trans)
+-- proves: suc (a + b) + c ≡ suc (b + (c + a))
+-- where
+--    this:   cong (λ n → n + c) (+comm a b)
+--    proves: (a + b) + c ≡ (b + a) + c
+--
+--    this:   +assoc b a c
+--    proves: (b + c) + a ≡ b + (c + a)
+--
+--    this:   cong (λ n → b + n) (+comm a c)
+--    proves: b + (a + c) ≡ b + (c + a)
+
+-- This:   +suc b (c + a)
+-- proves: suc (b + (c + a)) ≡ b + suc (c + a)

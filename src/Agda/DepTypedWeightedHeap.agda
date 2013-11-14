@@ -92,16 +92,18 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
-          | ge x
+          | ge x -- TODO: rename x
           = subst (WBLHeap A)
-                  (cong suc {!!})
+                  (cong suc (+case3 l2-rank r2-rank (l1-rank + r1-rank)))
                   (wblhNode x p2 x2 l2 (wblhMerge r2 (wblhNode l1ger1 p1 x1 l1 r1)))
 wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
-          | le x
-          = {!!}
+          | le x -- TODO: rename x
+          = subst (WBLHeap A)
+                  (cong suc (+case4 r2-rank (l1-rank + r1-rank) l2-rank) )
+                  (wblhNode x p2 x2 ((wblhMerge r2 (wblhNode l1ger1 p1 x1 l1 r1))) l2)
 {-
 wblhDeleteMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → WBLHeap A ???
 wblhDeleteMin wblhEmpty = {!!} -- can't insert anything here!
