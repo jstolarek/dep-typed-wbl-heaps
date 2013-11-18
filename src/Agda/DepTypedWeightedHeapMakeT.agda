@@ -5,7 +5,8 @@
 -- Repo address: https://github.com/jstolarek/dep-typed-heaps       --
 --                                                                  --
 -- Dependently-typed implementation of weight-biased leftist heap.  --
--- Work in progress.                                                --
+-- Two-stage heap merging algorithm using auxiliary makeT function  --
+-- (see Okasaki, Chapter 3.1, pp. 17-19)                            --
 ----------------------------------------------------------------------
 
 module DepTypedWeightedHeapMakeT where
@@ -267,7 +268,7 @@ proof-2 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
 proof-2 l1 r1 l2 r2 = cong suc (lemma-B l2 r2 (l1 + r1))
 
 -- Note [Notation in merge]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- ~~~~~~~~~~~~~~~~~~~~~~~~
 --
 -- merge uses different notation than the proofs. We use l1, r1, l2
 -- and r2 to denote the respective subtrees and l1-rank, r1-rank,

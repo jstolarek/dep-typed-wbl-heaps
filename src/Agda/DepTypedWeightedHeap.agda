@@ -5,6 +5,8 @@
 -- Repo address: https://github.com/jstolarek/dep-typed-heaps       --
 --                                                                  --
 -- Dependently-typed implementation of weight-biased leftist heap.  --
+-- One-pass merging algorithm with the auxiliary function inlined   --
+-- (see Okasaki, Exercise 3.4.c, p. 20).                            --
 -- Work in progress.                                                --
 ----------------------------------------------------------------------
 
@@ -12,41 +14,20 @@ module DepTypedWeightedHeap where
 
 open import DepTypedBasics
 
---for the moment we re-invent definition of Heap. This is temporary (I hope)
-record Heap (H : Set → Set) : Set1 where
-  field
-    empty   : ∀ {A} → H A
-    isEmpty : ∀ {A} → H A → Bool
-
-    singleton : ∀ {A} → A → H A
-    merge  : ∀ {A} → H A → H A → H A
-    insert : ∀ {A} → Nat → A → H A → H A
-
-    findMin   : ∀ {A} → H A → A
-    deleteMin : ∀ {A} → H A → H A
-open Heap {{...}} public
-
--- TODO: Import Priority from Heap
-
 Priority : Set
 Priority = Nat
 
--- index = tree size
--- TODO: currently there is no proof that priority of node is smaller than
--- its children. Add additional index?
-data WBLHeap (A : Set) : Nat → Set where
-  wblhEmpty : WBLHeap A zero
-  wblhNode  : {l r : Nat} → l ≥ r → Priority → A → WBLHeap A l → WBLHeap A r → WBLHeap A (suc (l + r))
+-- Definition same as previously
+data Heap (A : Set) : Nat → Set where
+  empty : Heap A zero
+  node  : {l r : Nat} → l ≥ r → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
 
--- Now we have dependent types, so we don't need rank but we need
--- evidence that left rank is at least as large as the right one
+isEmpty : {A : Set} {n : Nat} → Heap A n → Bool
+isEmpty empty            = true
+isEmpty (node _ _ _ _ _) = false
 
-wblhIsEmpty : {A : Set} {n : Nat} → WBLHeap A n → Bool
-wblhIsEmpty wblhEmpty            = true
-wblhIsEmpty (wblhNode _ _ _ _ _) = false
-
-wblhSingleton : {A : Set} → Priority → A → WBLHeap A (suc zero)
-wblhSingleton p x = wblhNode ge0 p x wblhEmpty wblhEmpty
+singleton : {A : Set} → Priority → A → Heap A (suc zero)
+singleton p x = node ge0 p x empty empty
 
 -- Note [Notation for proving heap merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,7 +73,7 @@ wblhSingleton p x = wblhNode ge0 p x wblhEmpty wblhEmpty
 -- its left child and need to prove that merging r2 with h2 gives
 -- correct size:
 --
--- wblhNode l1≥r1+h2 p1 x1 l1 (wblhMerge r1 (wblhNode l2ger2 p2 x2 l2 r2))
+-- node l1≥r1+h2 p1 x1 l1 (wblhMerge r1 (node l2ger2 p2 x2 l2 r2))
 --  |                      |             |    |
 --  |   +------------------+             |    |
 --  |   |     +--------------------------+    |
@@ -128,7 +109,7 @@ proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 -- the subtrees: l1 becomes new right subtree (since it is smaller)
 -- and r1 merged with h2 becomes new left subtree.
 --
--- (wblhNode l1≤r1+h2 p1 x1 (wblhMerge r1 (wblhNode l2ger2 p2 x2 l2 r2)) l1)
+-- (node l1≤r1+h2 p1 x1 (wblhMerge r1 (node l2ger2 p2 x2 l2 r2)) l1)
 --  |                                  |    |                            |
 --  |    +-----------------------------+    |                            |
 --  |    |     +----------------------------+                            |
@@ -198,77 +179,76 @@ lemma-4 a b c = trans (sym ((cong (λ n → n + c) (+suc a b))))
 proof-4 : (l1 r1 l2 r2 : Nat) → suc ((r2 + suc (l1 + r1)) + l2) ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-4 l1 r1 l2 r2 = cong suc (lemma-4 r2 (l1 + r1) l2)
 
--- Note [Notation in wblhMerge]
+-- Note [Notation in merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- wblhMerge uses different notation than the proofs. We use l1, r1,
+-- merge uses different notation than the proofs. We use l1, r1,
 -- l2 and r2 to denote the respective subtrees and l1-rank, r1-rank,
 -- l2-rank and r2-rank to denote their ranks.
 
-wblhMerge : {A : Set} {l r : Nat} → WBLHeap A l → WBLHeap A r → WBLHeap A (l + r)
-wblhMerge h1 h2 with h1 | h2
-wblhMerge {A} {zero} {_} h1 h2
-          | wblhEmpty
+merge : {A : Set} {l r : Nat} → Heap A l → Heap A r → Heap A (l + r)
+merge h1 h2 with h1 | h2
+merge {A} {zero} {_} h1 h2
+          | empty
           | _
           = h2
-wblhMerge {A} {suc l} {zero} h1 h2
+merge {A} {suc l} {zero} h1 h2
           | _
-          | wblhEmpty
-          = subst (WBLHeap A) (sym (+0 (suc l))) h1
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          | empty
+          = subst (Heap A) (sym (+0 (suc l))) h1
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           with p1 < p2
           | order l1-rank (r1-rank + suc (l2-rank + r2-rank))
           | order l2-rank (r2-rank + suc (l1-rank + r1-rank))
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           | true
           | ge l1≥r1+h2
           | _
-          = subst (WBLHeap A)
-                  (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 1]
-                  (wblhNode l1≥r1+h2 p1 x1 l1 (wblhMerge r1 h2))
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          = subst (Heap A)
+                  (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
+                  (node l1≥r1+h2 p1 x1 l1 (merge r1 h2))
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           | true
           | le l1≤r1+h2
           | _
-          = subst (WBLHeap A)
-                  (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 2]
-                  (wblhNode l1≤r1+h2 p1 x1 (wblhMerge r1 h2) l1)
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          = subst (Heap A)
+                  (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
+                  (node l1≤r1+h2 p1 x1 (merge r1 h2) l1)
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           | false
           | _
           | ge l2≥r2+h1
-          = subst (WBLHeap A)
-                  (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 3]
-                  (wblhNode l2≥r2+h1 p2 x2 l2 (wblhMerge r2 h1))
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          = subst (Heap A)
+                  (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 3]
+                  (node l2≥r2+h1 p2 x2 l2 (merge r2 h1))
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
-          | (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
+          | (node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
+          | (node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
           | _
           | le l2≤r2+h1
-          = subst (WBLHeap A)
-                  (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 4]
-                  (wblhNode l2≤r2+h1 p2 x2 ((wblhMerge r2 h1)) l2)
+          = subst (Heap A)
+                  (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 4]
+                  (node l2≤r2+h1 p2 x2 ((merge r2 h1)) l2)
 
-wblhInsert : {A : Set} {n : Nat} → Priority → A → WBLHeap A n → WBLHeap A (suc n)
-wblhInsert p x h = wblhMerge (wblhSingleton p x) h
+insert : {A : Set} {n : Nat} → Priority → A → Heap A n → Heap A (suc n)
+insert p x h = merge (singleton p x) h
 
-wblhFindMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → A
-wblhFindMin (wblhNode _ _ x _ _) = x
+findMin : {A : Set} {n : Nat} → Heap A (suc n) → A
+findMin (node _ _ x _ _) = x
 
-wblhDeleteMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → WBLHeap A n
-wblhDeleteMin (wblhNode _ _ _ l r) = wblhMerge l r
-
+deleteMin : {A : Set} {n : Nat} → Heap A (suc n) → Heap A n
+deleteMin (node _ _ _ l r) = merge l r
