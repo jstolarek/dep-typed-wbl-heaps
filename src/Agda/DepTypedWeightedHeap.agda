@@ -222,16 +222,14 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           with p1 < p2
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
-          (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
-          | true
-          with order l1-rank (r1-rank + suc (l2-rank + r2-rank))
+          | order l1-rank (r1-rank + suc (l2-rank + r2-rank))
+          | order l2-rank (r2-rank + suc (l1-rank + r1-rank))
 wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | true
           | ge l1≥r1+h2
+          | _
           = subst (WBLHeap A)
                   (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 1]
                   (wblhNode l1≥r1+h2 p1 x1 l1 (wblhMerge r1 (wblhNode l2ger2 p2 x2 l2 r2)))
@@ -240,6 +238,7 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | true
           | le l1≤r1+h2
+          | _
           = subst (WBLHeap A)
                   (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 2]
                   (wblhNode l1≤r1+h2 p1 x1 (wblhMerge r1 (wblhNode l2ger2 p2 x2 l2 r2)) l1)
@@ -247,11 +246,7 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
-          with order l2-rank (r2-rank + suc (l1-rank + r1-rank))
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
-          (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
-          | false
+          | _
           | ge l2≥r2+h1
           = subst (WBLHeap A)
                   (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 3]
@@ -260,6 +255,7 @@ wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           (wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
           (wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
           | false
+          | _
           | le l2≤r2+h1
           = subst (WBLHeap A)
                   (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [wblhMerge, proof 4]
