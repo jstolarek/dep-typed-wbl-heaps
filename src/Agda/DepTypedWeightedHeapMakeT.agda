@@ -12,41 +12,98 @@ module DepTypedWeightedHeapMakeT where
 
 open import DepTypedBasics
 
---for the moment we re-invent definition of Heap. This is temporary (I hope)
-record Heap (H : Set → Set) : Set1 where
-  field
-    empty   : ∀ {A} → H A
-    isEmpty : ∀ {A} → H A → Bool
-
-    singleton : ∀ {A} → A → H A
-    merge  : ∀ {A} → H A → H A → H A
-    insert : ∀ {A} → Nat → A → H A → H A
-
-    findMin   : ∀ {A} → H A → A
-    deleteMin : ∀ {A} → H A → H A
-open Heap {{...}} public
-
--- TODO: Import Priority from Heap
-
 Priority : Set
 Priority = Nat
 
--- index = tree size
+-- We use dependent types to index a tree by its size, instead of
+-- explicitly storing the size in the node constructor. Size of a tree
+-- equals size of its children plus one. Additionally we store
+-- evidence that a tree represents correct weight-biased leftist heap
+-- i.e. that size of left subtree is at least as large as size of the
+-- right one.
+data Heap (A : Set) : Nat → Set where
+  empty : Heap A zero
+  node  : {l r : Nat} → l ≥ r → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
+
 -- TODO: currently there is no proof that priority of node is smaller than
 -- its children. Add additional index?
-data WBLHeap (A : Set) : Nat → Set where
-  wblhEmpty : WBLHeap A zero
-  wblhNode  : {l r : Nat} → l ≥ r → Priority → A → WBLHeap A l → WBLHeap A r → WBLHeap A (suc (l + r))
 
--- Now we have dependent types, so we don't need rank but we need
--- evidence that left rank is at least as large as the right one
+isEmpty : {A : Set} {n : Nat} → Heap A n → Bool
+isEmpty empty            = true
+isEmpty (node _ _ _ _ _) = false
 
-wblhIsEmpty : {A : Set} {n : Nat} → WBLHeap A n → Bool
-wblhIsEmpty wblhEmpty            = true
-wblhIsEmpty (wblhNode _ _ _ _ _) = false
+singleton : {A : Set} → Priority → A → Heap A (suc zero)
+singleton p x = node ge0 p x empty empty
 
-wblhSingleton : {A : Set} → Priority → A → WBLHeap A (suc zero)
-wblhSingleton p x = wblhNode ge0 p x wblhEmpty wblhEmpty
+-- Note [Merging algorithm]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- We use a two-pass merging algorithm. One pass, implemented by
+-- merge, performs merging in a top-down manner. Second one,
+-- implemented by makeT, ensures that invarinats of weight-biased
+-- leftist tree are not violated by creating a node fulfilling the
+-- invariant.
+--
+-- Merge function analyzes four cases cases. Two of them are bases
+-- cases:
+--
+--    a) h1 is empty - return h2
+--
+--    b) h2 is empty - return h1
+--
+-- The other two form the inductive definition of merge:
+--
+--    c) p1 < p2, in which case p1 becomes the root, l1 becomes its
+--       one child and result of merging r1 with h2 becomes the other
+--       child:
+--
+--               p1
+--              /  \
+--             /    \
+--            l1  r1+h2
+--
+--    d) p2 < p1, in which case p2 becomes the root, l2 becomes its
+--       one child and result of merging r2 with h1 becomes the other
+--       child.
+--
+--               p2
+--              /  \
+--             /    \
+--            l2  r2+h1
+--
+-- In inductive cases we pass both childred - i.e. either l1 and r1+h2
+-- or l2 and r2+h1 - to makeT which creates a new node by inspecting
+-- sizes of children and swapping them if necessary.
+--
+-- This means our proof is two-stage. We need to prove that
+--
+--  1) makeT produces node of required size, even if it swaps left
+--     and right children.
+--
+--  2) recursive calls to merge produce trees of required size.
+
+-- Note [Proving makeT]
+-- ~~~~~~~~~~~~~~~~~~~~
+--
+-- makeT has two cases:
+--
+--  1) size of l is ≥ than size of r in which case no extra
+--     proof is necessary.
+--
+--  2) size of r is ≥ than size of l in which case we swap left and
+--     right subtrees. This requires us to prove that:
+--
+--       suc (r + l) ≡ suc (l + r)
+--
+--     That proof is done using congruence on suc function and
+--     commutativity of addition.
+
+makeT : {A : Set} {l r : Nat} → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
+makeT {A} {l-rank} {r-rank} p x l r with order l-rank r-rank
+makeT {A} {l-rank} {r-rank} p x l r | ge lger
+  = node lger p x l r
+makeT {A} {l-rank} {r-rank} p x l r | le rgel
+  = subst (Heap A) (cong suc (+comm r-rank l-rank)) (node rgel p x r l)
 
 -- Note [Notation for proving heap merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,33 +130,56 @@ wblhSingleton p x = wblhNode ge0 p x wblhEmpty wblhEmpty
 --  l1    r1   l2    r2
 
 
--- Note [Merging algorithm]
--- ~~~~~~~~~~~~~~~~~~~~~~~~
+-- Note [Proving merge]
+-- ~~~~~~~~~~~~~~~~~~~~
 --
--- In all four cases we have to prove that recursive call to merge
--- produces heap of required size, which is h1 + h2. Since in the
--- proofs we always operate on l1, r1, l2 and r2 we have:
+-- We need to proove that all four cases of merge (see [Merging
+-- algorithm]) produce heap of required size, which is h1 + h2. Since in
+-- the proofs we always operate on l1, r1, l2 and r2 we have:
 --
 --   h1 + h2 ̄≡ suc (l1 + r1) + suc (l2 + r2)
 --           ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
--- Second transformation comes from definition of _+_
+-- (Second transformation comes from definition of _+_)
 
--- Note [wblhMerge, proof 1]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-- Note [merge, proof 0a]
+-- ~~~~~~~~~~~~~~~~~~~~~~
 --
--- We have p1 < p2 and l1 ≥ r1 + h2. We keep p1 as the root and l1 as
--- its left child and need to prove that merging r2 with h2 gives
--- correct size:
+-- h1 ≡ 0, therefore: h1 + h2 ≡ 0 + h2 ≡ h2 ∎
 --
--- wblhNode l1≥r1+h2 p1 x1 l1 (wblhMerge r1 (wblhNode l2ger2 p2 x2 l2 r2))
---  |                      |             |    |
---  |   +------------------+             |    |
---  |   |     +--------------------------+    |
---  |   |     |     +-------------------------+
---  |   |     |     |
--- suc (l1 + (r1 + suc (l2 + r2)))
+-- This is definitional equality based on _+_
 --
+-- ∎
+
+-- Note [merge, proof 0b]
+-- ~~~~~~~~~~~~~~~~~~~~~~
+--
+-- h2 ≡ 0, therefore expected size is h1 + h2 ≡ h1 + 0. We need to
+-- show that:
+--
+--    h1 ≡ h1 + 0
+--
+-- We use proof of the fact that 0 is right identity of addition. Sice
+-- our proof is done in the opposite direction we must additionally
+-- use symmetry.
+--
+-- ∎
+
+-- Note [merge, proof 1]
+-- ~~~~~~~~~~~~~~~~~~~~~
+--
+-- We have p1 < p2. We keep p1 as the root and need to prove that
+-- merging r1 with h2 gives correct size:
+--
+--   makeT p1 x1 l1 (merge r1 h2)
+--    |          |     |
+--    |   +------+     |
+--    |   |     _______|__________
+--    |   |    /                  \
+--   suc (l1 + (r1 + suc (l2 + r2)))
+--                   \___________/
+--                         h2
 -- Formally:
 --
 --   suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
@@ -117,71 +197,123 @@ wblhSingleton p x = wblhNode ge0 p x wblhEmpty wblhEmpty
 --   a + (b + c) ≡ (a + b) + c
 --
 -- Which is associativity that we have already proved.
+--
+-- ∎
 
-proof-1 : (l1 r1 l2 r2 : Nat) → suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+proof-1 : (l1 r1 l2 r2 : Nat) → suc ( l1 + (r1 + suc (l2 + r2)))
+                              ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 
-lemma-2 : (a b : Nat) → a + suc b ≡ b + suc a
-lemma-2 a b = trans (sym (+suc a b)) (trans (cong suc (+comm a b)) (+suc b a))
+-- Note [merge, proof 2]
+-- ~~~~~~~~~~~~~~~~~~~~~
+--
+-- We have p2 < p1. We keep p2 as the root and need to prove that
+-- merging r2 with h1 gives correct size:
+--
+--   makeT p2 x2 l2 (merge r2 h1)
+--    |          |     |
+--    |   +------+     |
+--    |   |     _______|__________
+--    |   |    /                  \
+--   suc (l2 + (r2 + suc (l1 + r1)))
+--                    \__________/
+--                         h1
+-- Formally:
+--
+--   suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+--
+-- Again we use cong to deal with the outer calls to suc, substitute
+-- a = l2, b = r2 and c = l1 + r1), which leaves us with a proof
+-- of lemma B:
+--
+--   a + (b + suc c) ≡ c + suc (a + b)
+--
+-- From associativity we know that:
+--
+--   a + (b + suc c) ≡ (a + b) + suc c
+--
+-- If we prove lemma A:
+--
+--  (a + b) + suc c = c + suc (a + b)
+--
+-- we can combine it using transitivity to get the final proof. We can
+-- rewrite lemma A as:
+--
+--    n + suc m ≡ m + suc n
+--
+-- where n = a + b and m = c. We start by using symmetry on +suc:
+---
+--   n + (suc m) ≡ suc (n + m)
+--
+-- Using transitivity we combine it with congruence on commutativity
+-- of addition to prove:
+--
+--   suc (n + m) ≡ suc (m + n)
+--
+-- Again, using transitivity we combine it with +suc:
+--
+--   suc (m + n) ≡ m + suc n
+--
+-- ∎
 
-lemma-3 : (a b c : Nat) → a + (b + suc c) ≡ c + suc (a + b)
-lemma-3 a b c = trans (+assoc a b (suc c)) (lemma-2 (a + b) c)
+lemma-A : (n m : Nat) → n + suc m ≡ m + suc n
+lemma-A n m = trans (sym (+suc n m)) (trans (cong suc (+comm n m)) (+suc m n))
 
-proof-3 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
-proof-3 l1 r1 l2 r2 = cong suc (lemma-3 l2 r2 (l1 + r1))
+lemma-B : (a b c : Nat) → a + (b + suc c) ≡ c + suc (a + b)
+lemma-B a b c = trans (+assoc a b (suc c)) (lemma-A (a + b) c)
 
--- Note [Notation in wblhMerge]
+proof-2 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
+                              ≡ suc ((l1 + r1) + suc (l2 + r2))
+proof-2 l1 r1 l2 r2 = cong suc (lemma-B l2 r2 (l1 + r1))
+
+-- Note [Notation in merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- wblhMerge uses different notation than the proofs. We use l1, r1,
--- l2 and r2 to denote the respective subtrees and l1-rank, r1-rank,
--- l2-rank and r2-rank to denote their ranks.
+-- merge uses different notation than the proofs. We use l1, r1, l2
+-- and r2 to denote the respective subtrees and l1-rank, r1-rank,
+-- l2-rank and r2-rank to denote their ranks. We use h1 and h2 to
+-- denote heaps.
 
-wblhMakeT : {A : Set} {l r : Nat} → Priority → A → WBLHeap A l → WBLHeap A r → WBLHeap A (suc (l + r))
-wblhMakeT {A} {l-rank} {r-rank} p x l r with order l-rank r-rank
-wblhMakeT {A} {l-rank} {r-rank} p x l r | ge lger
-  = wblhNode lger p x l r
-wblhMakeT {A} {l-rank} {r-rank} p x l r | le rgel
-  = subst (WBLHeap A) (cong suc (+comm r-rank l-rank)) (wblhNode rgel p x r l)
-
-wblhMerge : {A : Set} {l r : Nat} → WBLHeap A l → WBLHeap A r → WBLHeap A (l + r)
-wblhMerge h1 h2 with h1 | h2
-wblhMerge {A} {zero} {_} h1 h2
-          | wblhEmpty
+merge : {A : Set} {l r : Nat} → Heap A l → Heap A r → Heap A (l + r)
+merge h1 h2 with h1 | h2
+merge {A} {zero} {_} h1 h2
+          | empty
           | _
-          = h2
-wblhMerge {A} {suc l} {zero} h1 h2
+          = h2 -- See [merge, proof 0a]
+merge {A} {suc l} {zero} h1 h2
           | _
-          | wblhEmpty
-          = subst (WBLHeap A) (sym (+0 (suc l))) h1
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          | empty
+          = subst (Heap A)
+                  (sym (+0 (suc l)))  -- See [merge, proof 0b]
+                  h1
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           with p1 < p2
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           | true
-          = subst (WBLHeap A)
-                  (proof-1 l1-rank r1-rank l2-rank r2-rank)
-                  (wblhMakeT p1 x1 l1 (wblhMerge r1 h2))
-wblhMerge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          = subst (Heap A)
+                  (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
+                  (makeT p1 x1 l1 (merge r1 h2))
+merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | wblhNode {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | wblhNode {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
           | false
-          = subst (WBLHeap A)
-                  (proof-3 l1-rank r1-rank l2-rank r2-rank)
-                  (wblhMakeT p2 x2 l2 (wblhMerge r2 h1))
+          = subst (Heap A)
+                  (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
+                  (makeT p2 x2 l2 (merge r2 h1))
 
-wblhInsert : {A : Set} {n : Nat} → Priority → A → WBLHeap A n → WBLHeap A (suc n)
-wblhInsert p x h = wblhMerge (wblhSingleton p x) h
+insert : {A : Set} {n : Nat} → Priority → A → Heap A n → Heap A (suc n)
+insert p x h = merge (singleton p x) h
 
-wblhFindMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → A
-wblhFindMin (wblhNode _ _ x _ _) = x
+findMin : {A : Set} {n : Nat} → Heap A (suc n) → A
+findMin (node _ _ x _ _) = x
 
-wblhDeleteMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → WBLHeap A n
-wblhDeleteMin (wblhNode _ _ _ l r) = wblhMerge l r
+deleteMin : {A : Set} {n : Nat} → Heap A (suc n) → Heap A n
+deleteMin (node _ _ _ l r) = merge l r
 

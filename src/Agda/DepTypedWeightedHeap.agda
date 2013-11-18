@@ -272,17 +272,3 @@ wblhFindMin (wblhNode _ _ x _ _) = x
 wblhDeleteMin : {A : Set} {n : Nat} → WBLHeap A (suc n) → WBLHeap A n
 wblhDeleteMin (wblhNode _ _ _ l r) = wblhMerge l r
 
-
-{-
--- can't write this instance declaration now :-/
-wblheap : ∀ {n} → Heap λ A → WBLHeap A n
-wblheap = record { empty     = {!!};
-                 isEmpty   = wblhIsEmpty;
-                 singleton = {!!} --wblhSingleton
---                 merge     = wblhMerge;
---                 insert    = wblhInsert;
---                 findMin   = wblhFindMin;
---                 deleteMin = wblhDeleteMin
-               }
-
--}

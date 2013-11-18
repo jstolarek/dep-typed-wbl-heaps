@@ -39,7 +39,6 @@ data _≡_ {S : Set} (s : S) : S → Set where
 
 infixl 1 _≡_
 
-
 sym : {A : Set} → {a b : A} → a ≡ b → b ≡ a
 sym refl = refl
 
