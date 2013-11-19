@@ -242,7 +242,7 @@ merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           | le l2≤r2+h1
           = subst (Heap A)
                   (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 4]
-                  (node l2≤r2+h1 p2 x2 ((merge r2 h1)) l2)
+                  (node l2≤r2+h1 p2 x2 (merge r2 h1) l2)
 
 insert : {A : Set} {n : Nat} → Priority → A → Heap A n → Heap A (suc n)
 insert p x h = merge (singleton p x) h

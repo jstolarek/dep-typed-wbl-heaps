@@ -33,8 +33,7 @@ wblhSingleton : {A : Set} → Priority → A → WBLHeap A
 wblhSingleton p x = wblhNode one p x wblhEmpty wblhEmpty
 
 makeT : {A : Set} → Priority → A → WBLHeap A → WBLHeap A → WBLHeap A
-makeT p x l r with rank l
-makeT p x l r | rank_l with rank r
+makeT p x l r with rank l | rank r
 makeT p x l r | rank_l | rank_r with rank_l ≥ rank_r
 makeT p x l r | rank_l | rank_r | true  = wblhNode (suc (rank_l + rank_r)) p x l r
 makeT p x l r | rank_l | rank_r | false = wblhNode (suc (rank_l + rank_r)) p x r l

@@ -83,8 +83,8 @@ subst2 refl p = p
 --
 -- Agda normalizes each side using definition of + :
 --
---  RHS: suc a + (b + c) ≡ suc (a + (b + c))
---  LHS: (suc a + b) + c ≡ suc (a + b) + c ≡ suc ((a + b) + c)
+--  LHS: suc a + (b + c) ≡ suc (a + (b + c))
+--  RHS: (suc a + b) + c ≡ suc (a + b) + c ≡ suc ((a + b) + c)
 --
 -- This means I have to prove:
 --
