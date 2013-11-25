@@ -4,3 +4,6 @@
 
 # Agda
 *.agdai
+
+# Idris
+*.ibc
