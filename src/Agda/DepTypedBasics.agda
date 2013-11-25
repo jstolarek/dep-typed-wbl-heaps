@@ -62,9 +62,9 @@ subst2 refl p = p
 +suc zero b    = refl
 +suc (suc a) b = cong suc (+suc a b)
 
-≥suc : {m n : Nat} → m ≡ n → m ≥ n
-≥suc {zero} {zero} refl        = ge0
-≥suc {.(suc n)} {(suc n)} refl = geS (≥suc {n} {n} refl)
+≥sym : {m n : Nat} → m ≡ n → m ≥ n
+≥sym {zero} {zero} refl        = ge0
+≥sym {.(suc n)} {(suc n)} refl = geS (≥sym {n} {n} refl)
 
 +comm : (a b : Nat) → a + b ≡ b + a
 +comm a zero    = +0 a

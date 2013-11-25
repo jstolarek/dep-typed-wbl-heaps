@@ -21,12 +21,8 @@ Priority = Nat
 Rank : Set
 Rank = Nat
 
--- We use dependent types to index a tree by its size, instead of
--- explicitly storing the size in the node constructor. Size of a tree
--- equals size of its children plus one. Additionally we store
--- evidence that a tree represents correct weight-biased leftist heap
--- i.e. that size of left subtree is at least as large as size of the
--- right one.
+-- As we shall see it becomes a problem that Heap does not have any
+-- information about its children.
 data Heap (A : Set) : Nat → Set where
   empty : {n : Nat} → Heap A n
   node  : {n : Nat} → A → (p : Priority) → Rank → p ≥ n  → Heap A p → Heap A p → Heap A n
@@ -39,9 +35,16 @@ isEmpty : {A : Set} {n : Nat} → Heap A n → Bool
 isEmpty empty            = true
 isEmpty (node _ _ _ _ _ _) = false
 
--- TODO: Is this correct? should I use p or zero for index?
-singleton : {A : Set} {n : Nat} → A → (p : Priority) → Heap A n
-singleton x p = node x p one {!!} empty empty
+-- singletonL is liberal: it says that every element in that singleton
+-- Heap is greater than 0, but that is trivial, since any natural
+-- number is.
+singletonL : {A : Set} → A → (p : Priority) → Heap A zero
+singletonL x p = node x p one ge0 empty empty
+
+-- Singleton is conservative. It says that every element in that
+-- singleton tree is greater or equal to p.
+singletonC : {A : Set} → A → (p : Priority) → Heap A p
+singletonC x p = node x p one (≥sym refl) empty empty
 
 makeT : {A : Set} {n : Nat} → A → (p : Priority) → p ≥ n → Heap A p → Heap A p → Heap A n
 makeT x p pgen l r with rank l | rank r
@@ -74,15 +77,32 @@ merge {A} {b} h1 h2
           | ge p1≥p2
           = makeT x2 p2 p2≥b l2 (merge r2 (node x1 p1 l-rank p1≥p2 l1 r1))
 
-insert : {A : Set} → A → (p : Priority) → Heap A p → Heap A p
-insert x p h = merge (singleton x p) h
+-- Again, termination checker problems. I can't create a function that
+-- just replaces the proof, because Heap's index doesn't say anything
+-- about index of its children and the new proof refers to index of
+-- children.
 
-{-
-findMin : {A : Set} {n : Nat} → Heap A (suc n) → A
-findMin (node _ _ x _ _) = x
+toZero : {A : Set} {n : Nat} → Heap A n → Heap A zero
+toZero empty                 = empty
+toZero (node x p rank _ l r) = node x p rank ge0 l r
 
-deleteMin : {A : Set} {n p : Nat} → Heap A n → Heap A p
-deleteMin empty              = {!!}
-deleteMin (node _ _ _ _ l r) = merge {!!} {!!}
--}
+insertL : {A : Set} {n : Nat} → A → Priority → Heap A n → Heap A zero
+insertL x p h = merge (singletonL x p) (toZero h)
 
+-- This feels too conservative
+insertC : {A : Set} → A → (p : Priority) → Heap A p → Heap A p
+insertC x p h = merge (singletonC x p) h
+
+-- We could write this function, but it would be very inconvenient to
+-- require a proof each time we want to insert something.
+insert : {A : Set} {n : Nat} → A → (p : Priority) → n ≥ p → Heap A n → Heap A p
+insert x p n≥p h = merge {!!} {!!}
+
+-- Again, findMin and deletMin are incomplete
+findMin : {A : Set} {n : Nat} → Heap A n → A
+findMin empty              = {!!}
+findMin (node x _ _ _ _ _) = x
+
+deleteMin : {A : Set} {n b : Nat} → Heap A n → Heap A zero
+deleteMin empty                               = {!!}
+deleteMin {A} {n} {b} (node x p rank p≥n l r) = merge (toZero l) (toZero r)
