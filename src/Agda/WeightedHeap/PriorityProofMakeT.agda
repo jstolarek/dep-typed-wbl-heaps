@@ -54,24 +54,24 @@ makeT x p pgen l r | l-rank | r-rank | le _ = node x p (suc (l-rank + r-rank)) p
 
 merge : {A : Set} {b : Nat} → Heap A b → Heap A b → Heap A b
 merge h1 h2 with h1 | h2
-merge {A} {b} h1 h2
+merge h1 h2
           | empty
           | _
           = h2
-merge {A} {b} h1 h2
+merge h1 h2
           | _
           | empty
           = h1
-merge {A} {b} h1 h2
+merge h1 h2
           | node x1 p1 l-rank p1≥b l1 r1
           | node x2 p2 r-rank p2≥b l2 r2
           with order p1 p2
-merge {A} {b} h1 h2
+merge h1 h2
           | node x1 p1 l-rank p1≥b l1 r1
           | node x2 p2 r-rank p2≥b l2 r2
           | le p1≤p2
           = makeT x1 p1 p1≥b l1 (merge r1 (node x2 p2 r-rank p1≤p2 l2 r2))
-merge {A} {b} h1 h2
+merge h1 h2
           | node x1 p1 l-rank p1≥b l1 r1
           | node x2 p2 r-rank p2≥b l2 r2
           | ge p1≥p2
