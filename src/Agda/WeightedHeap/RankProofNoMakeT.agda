@@ -10,7 +10,7 @@
 -- Work in progress.                                                --
 ----------------------------------------------------------------------
 
-module DepTypedWeightedHeap where
+module WeightedHeap.RankProofNoMakeT where
 
 open import DepTypedBasics
 

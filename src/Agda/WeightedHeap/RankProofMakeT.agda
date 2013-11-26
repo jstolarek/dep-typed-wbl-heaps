@@ -9,7 +9,7 @@
 -- (see Okasaki, Chapter 3.1, pp. 17-19)                            --
 ----------------------------------------------------------------------
 
-module DepTypedWeightedHeapMakeT where
+module WeightedHeap.RankProofMakeT where
 
 open import DepTypedBasics
 
