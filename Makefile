@@ -1,2 +1,2 @@
 clean:
-	rm -fr src/Agda/*.agdai
+	find . -name "*.agdai" | xargs rm -f
