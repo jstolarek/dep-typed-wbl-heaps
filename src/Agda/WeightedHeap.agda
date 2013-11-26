@@ -11,59 +11,74 @@
 module WeightedHeap where
 
 open import Basics
-open import Heap
 
 -- TODO; Define what is rank in a weight-biased leftist heap
 Rank : Set
 Rank = Nat
 
-data WBLHeap (A : Set) : Set where
-  wblhEmpty : WBLHeap A
-  wblhNode  : Rank → Priority → A → WBLHeap A → WBLHeap A → WBLHeap A
+Priority : Set
+Priority = Nat
 
-rank : {A : Set} → WBLHeap A -> Nat
-rank wblhEmpty            = zero
-rank (wblhNode r _ _ _ _) = r
+data Heap (A : Set) : Set where
+  empty : Heap A
+  node  : Rank → Priority → A → Heap A → Heap A → Heap A
 
-wblhIsEmpty : {A : Set} → WBLHeap A → Bool
-wblhIsEmpty wblhEmpty            = true
-wblhIsEmpty (wblhNode _ _ _ _ _) = false
+rank : {A : Set} → Heap A → Nat
+rank empty            = zero
+rank (node r _ _ _ _) = r
 
-wblhSingleton : {A : Set} → Priority → A → WBLHeap A
-wblhSingleton p x = wblhNode one p x wblhEmpty wblhEmpty
+isEmpty : {A : Set} → Heap A → Bool
+isEmpty empty            = true
+isEmpty (node _ _ _ _ _) = false
 
-makeT : {A : Set} → Priority → A → WBLHeap A → WBLHeap A → WBLHeap A
+singleton : {A : Set} → Priority → A → Heap A
+singleton p x = node one p x empty empty
+
+makeT : {A : Set} → Priority → A → Heap A → Heap A → Heap A
 makeT p x l r with rank l | rank r
 makeT p x l r | rank_l | rank_r with rank_l ≥ rank_r
-makeT p x l r | rank_l | rank_r | true  = wblhNode (suc (rank_l + rank_r)) p x l r
-makeT p x l r | rank_l | rank_r | false = wblhNode (suc (rank_l + rank_r)) p x r l
+makeT p x l r | rank_l | rank_r | true  = node (suc (rank_l + rank_r)) p x l r
+makeT p x l r | rank_l | rank_r | false = node (suc (rank_l + rank_r)) p x r l
 
-wblhMerge : {A : Set} → WBLHeap A → WBLHeap A → WBLHeap A
-wblhMerge wblhEmpty h = h
-wblhMerge h wblhEmpty = h
-wblhMerge (wblhNode w1 p1 x1 l1 r1) (wblhNode w2 p2 x2 l2 r2) =
-  if p1 < p2
-  then makeT p1 x1 l1 (wblhMerge r1 (wblhNode w2 p2 x2 l2 r2))
-  else makeT p2 x2 l2 (wblhMerge (wblhNode w1 p1 x1 l1 r1) r2)
+merge : {A : Set} → Heap A → Heap A → Heap A
+merge h1 h2 with h1 | h2
+merge h1 h2 | empty | _ = h1
+merge h1 h2 | _ | empty = h2
+merge h1 h2
+  | (node w1 p1 x1 l1 r1)
+  | (node w2 p2 x2 l2 r2)
+  with p1 < p2
+merge h1 h2
+  | (node w1 p1 x1 l1 r1)
+  | (node w2 p2 x2 l2 r2)
+  | true
+  = makeT p1 x1 l1 (merge r1 h2)
+merge h1 h2
+  | (node w1 p1 x1 l1 r1)
+  | (node w2 p2 x2 l2 r2)
+  | false
+  = makeT p2 x2 l2 (merge h1 r2)
 
-wblhInsert : {A : Set} → Priority → A → WBLHeap A → WBLHeap A
-wblhInsert p x h = wblhMerge (wblhSingleton p x) h
+insert : {A : Set} → Priority → A → Heap A → Heap A
+insert p x h = merge (singleton p x) h
 
-wblhFindMin : {A : Set} → WBLHeap A → A
-wblhFindMin wblhEmpty = {!!} -- can't insert anything here!
-wblhFindMin (wblhNode _ _ x _ _) = x
+findMin : {A : Set} → Heap A → A
+findMin empty = {!!} -- can't insert anything here!
+findMin (node _ _ x _ _) = x
 
-wblhDeleteMin : {A : Set} → WBLHeap A → WBLHeap A
-wblhDeleteMin wblhEmpty = {!!} -- can't insert anything here!
-wblhDeleteMin (wblhNode _ _ _ l r) = wblhMerge l r
+deleteMin : {A : Set} → Heap A → Heap A
+deleteMin empty = {!!} -- can't insert anything here!
+deleteMin (node _ _ _ l r) = merge l r
 
-wblheap : Heap \ A → WBLHeap A
-wblheap = record {
-                 empty     = wblhEmpty;
-                 isEmpty   = wblhIsEmpty;
-                 singleton = wblhSingleton;
-                 merge     = wblhMerge;
-                 insert    = wblhInsert;
-                 findMin   = wblhFindMin;
-                 deleteMin = wblhDeleteMin
+{-
+Heap : Heap \ A → Heap A
+Heap = record {
+                 empty     = empty;
+                 isEmpty   = IsEmpty;
+                 singleton = Singleton;
+                 merge     = Merge;
+                 insert    = Insert;
+                 findMin   = FindMin;
+                 deleteMin = DeleteMin
                }
+-}

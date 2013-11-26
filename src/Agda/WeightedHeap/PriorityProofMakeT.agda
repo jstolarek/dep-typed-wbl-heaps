@@ -10,7 +10,7 @@
 -- Proof of preserving correctness of priorities.                   --
 ----------------------------------------------------------------------
 
-module DepTypedWeightedHeapMakeTHeapProperty where
+module WeightedHeap.PriorityProofMakeT where
 
 open import DepTypedBasics
 
