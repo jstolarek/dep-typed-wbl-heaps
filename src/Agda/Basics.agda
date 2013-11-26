@@ -37,7 +37,7 @@ m     ≥ zero  = true
 zero  ≥ suc n = false
 suc m ≥ suc n = m ≥ n
 
-infixl 4 _<_
+infixl 4 _<_ _≥_
 
 min : Nat → Nat  → Nat
 min zero    n       = zero

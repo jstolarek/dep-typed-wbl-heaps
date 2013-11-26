@@ -8,7 +8,7 @@
 -- leftist heap. No dependent types.                                --
 ----------------------------------------------------------------------
 
-module WeightedHeap where
+module WeightedHeapMakeT where
 
 open import Basics
 
