@@ -1,0 +1,135 @@
+When we inline definition of makeT in rank proof we need to supply
+four proofs instead of 4. Previously there were 2 proofs of makeT and
+2 proofs of merge. New proofs will be a combination of these.
+
+Proofs of makeT:
+
+1) trivial
+2) commutativity under suc:
+
+     suc (r + l) ≡ suc (l + r)
+
+   proved as:
+
+     cong suc (+comm r l)
+
+Proofs of merge
+
+1) suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+
+   proved as:
+
+     cong suc (+assoc l1 r1 (suc (l2 + r2)))
+
+   or, after substituting a = l1, b = r1 and c = suc (l2 + r2) as:
+
+     cong suc (+assoc a b c)
+
+2) suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+
+proof-2a l1 r1 l2 r2 =
+  cong suc (trans (+assoc l2 r2 (suc (l1 + r1)))
+           (trans (sym (+suc (l2 + r2) (l1 + r1)))
+           (trans (cong suc (+comm (l2 + r2) (l1 + r1))) (+suc (l1 + r1) (l2 + r2)))))
+
+suc (l2 + (r2 + suc (l1 + r1))) ≡[ cong suc ]
+     l2 + (r2 + suc (l1 + r1))  ≡[+assoc l2 r2 (suc (l1 + r1))]
+    (l2 + r2) + suc (l1 + r1)   ≡[ sym (+suc (l2 + r2) (l1 + r1))]
+    suc ((l2 + r2) + (l1 + r1)) ≡[ cong suc (+comm (l2 + r2) (l1 + r1)) ]
+    suc ((l1 + r1) + (l2 + r2)) ≡[+suc (l1 + r1) (l2 + r2) ]
+    (l1 + r1) + suc (l2 + r2) ∎
+
+- Note: if we have to prove that a = e, and we can prove that a = b, b = c,
+- c = d, d = e, then we can chain proofs using trans:
+-
+-   trans (a ≡ b) (trans (b ≡ c) (trans (c ≡ d) (d ≡ e)))
+-
+- We will be using this pattern here. It is verobse and standard library
+- provides ≡-Reasoning to perform these kind of proofs.
+
+New proofs will result from combining old ones.
+
+Inlining makeT into :
+
+          = subst (Heap A)
+                  (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
+                  (makeT p1 x1 l1 (merge r1 h2))
+
+gives two cases:
+
+1)
+          = subst (Heap A)
+                  (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
+                  (node l1≥r1+h2 p1 x1 l1 (merge r1 h2))
+
+Here we don't swap subtrees and since the proof of that property is
+trivial this proof is identical to the previous one.
+
+2)
+
+          = subst (Heap A)
+                  (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
+                  (node l1≤r1+h2 p1 x1 (merge r1 h2) l1)
+
+Here we swap subtrees, which means that new proof will be result of
+combining two proofs:
+
+  cong suc (+comm r l)    -- makeT
+  cong suc (+assoc a b c) -- proof 1
+
+Property we have to prove now is:
+
+  suc ((r1 + suc (l2 + r2)) + l1) ≡ suc ((l1 + r1) + suc (l2 + r2))
+
+Compared to the previous one l1 and (r1 + suc (l2 + r2)) have been
+swapped on the RHS. We only need one cong suc. We start by proving
+commutativity and then use the old proof.
+
+  cong suc (trans (+comm (r1 + (suc (l2 + r2))) l1)
+                  (+assoc l1 r1 (suc (l2 + r2))))
+
+∎
+
+Now for the second part. Inlining makeT into
+
+          = subst (Heap A)
+                  (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
+                  (makeT p2 x2 l2 (merge r2 h1))
+
+
+gives two cases:
+
+3)
+          = subst (Heap A)
+                  (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 3]
+                  (node l2≥r2+h1 p2 x2 l2 (merge r2 h1))
+
+Again, we don't swap subtrees and since the proof of that property is
+trivial this proof is identical to the previous one.
+
+4) Property to prove:
+
+suc ((r2 + suc (l1 + r1)) + l2) ≡ suc ((l1 + r1) + suc (l2 + r2))
+
+
+suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+
+
+          = subst (Heap A)
+                  (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 4]
+                  (node l2≤r2+h1 p2 x2 (merge r2 h1) l2)
+
+In this case we swap subtrees, so we combine two proofs:
+
+  cong suc (+comm r l)    -- makeT
+  cong suc (trans (+assoc l2 r2 (suc (l1 + r1)))
+           (trans (sym (+suc (l2 + r2) (l1 + r1)))
+           (trans (cong suc (+comm (l2 + r2) (l1 + r1))) (+suc (l1 + r1) (l2 + r2)))))
+
+
+Again, we combine both proofs using transitivity:
+
+cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2)
+                (lemma-3 l2 r2 (l1 + r1)))
+
+Where lemma-3 prooves point 3)

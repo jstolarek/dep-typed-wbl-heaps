@@ -66,18 +66,18 @@ singleton p x = node ge0 p x empty empty
 --
 -- Second transformation comes from definition of _+_
 
--- Note [wblhMerge, proof 1]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~
+-- Note [merge, proof 1]
+-- ~~~~~~~~~~~~~~~~~~~~~
 --
 -- We have p1 < p2 and l1 ≥ r1 + h2. We keep p1 as the root and l1 as
 -- its left child and need to prove that merging r2 with h2 gives
 -- correct size:
 --
--- node l1≥r1+h2 p1 x1 l1 (wblhMerge r1 (node l2ger2 p2 x2 l2 r2))
---  |                      |             |    |
---  |   +------------------+             |    |
---  |   |     +--------------------------+    |
---  |   |     |     +-------------------------+
+-- node l1≥r1+h2 p1 x1 l1 (merge r1 (node l2ger2 p2 x2 l2 r2))
+--  |                      |         |    |
+--  |   +------------------+         |    |
+--  |   |     +----------------------+    |
+--  |   |     |     +---------------------+
 --  |   |     |     |
 -- suc (l1 + (r1 + suc (l2 + r2)))
 --
@@ -99,21 +99,22 @@ singleton p x = node ge0 p x empty empty
 --
 -- Which is associativity that we have already proved.
 
-proof-1 : (l1 r1 l2 r2 : Nat) → suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+proof-1 : (l1 r1 l2 r2 : Nat) → suc ( l1 + (r1 + suc (l2 + r2)))
+                              ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 
--- Note [wblhMerge, proof 2]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~
+-- Note [merge, proof 2]
+-- ~~~~~~~~~~~~~~~~~~~~~
 --
 -- We have p1 < p2 and r1 + h2 ≥ l1. We keep p1 as the root but switch
 -- the subtrees: l1 becomes new right subtree (since it is smaller)
 -- and r1 merged with h2 becomes new left subtree.
 --
--- (node l1≤r1+h2 p1 x1 (wblhMerge r1 (node l2ger2 p2 x2 l2 r2)) l1)
---  |                                  |    |                            |
---  |    +-----------------------------+    |                            |
---  |    |     +----------------------------+                            |
---  |    |     |               +-----------------------------------------+
+-- (node l1≤r1+h2 p1 x1 (merge r1 (node l2ger2 p2 x2 l2 r2)) l1)
+--  |                          |   |                         |
+--  |    +---------------------+   |                         |
+--  |    |     +-------------------+                         |
+--  |    |     |               +-----------------------------+
 --  |    |     |               |
 -- suc ((r1 + suc (l2 + r2)) + l1)
 --
@@ -142,6 +143,13 @@ lemma-1 a b c = trans (+comm (b + c) a) (+assoc a b c)
 
 proof-2 : (l1 r1 l2 r2 : Nat) → suc ((r1 + suc (l2 + r2)) + l1) ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-2 l1 r1 l2 r2 = cong suc (lemma-1 l1 r1 (suc (l2 + r2)))
+
+-- Inlining lemma-1 into proof-2 gives:
+--
+-- proof-2a : (l1 r1 l2 r2 : Nat) → suc ((r1 + suc (l2 + r2)) + l1)
+--                                ≡ suc ((l1 + r1) + suc (l2 + r2))
+-- proof-2a l1 r1 l2 r2 = cong suc (trans (+comm (r1 + (suc (l2 + r2))) l1)
+--                                        (+assoc l1 r1 (suc (l2 + r2))))
 
 lemma-2 : (a b : Nat) → a + suc b ≡ b + suc a
 lemma-2 a b = trans (sym (+suc a b)) (trans (cong suc (+comm a b)) (+suc b a))
@@ -178,6 +186,10 @@ lemma-4 a b c = trans (sym ((cong (λ n → n + c) (+suc a b))))
 
 proof-4 : (l1 r1 l2 r2 : Nat) → suc ((r2 + suc (l1 + r1)) + l2) ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-4 l1 r1 l2 r2 = cong suc (lemma-4 r2 (l1 + r1) l2)
+
+-- we can combine proof of makeT with proof of 3:
+proof-4a : (l1 r1 l2 r2 : Nat) → suc ((r2 + suc (l1 + r1)) + l2) ≡ suc ((l1 + r1) + suc (l2 + r2))
+proof-4a l1 r1 l2 r2 = cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2) (lemma-3 l2 r2 (l1 + r1)))
 
 -- Note [Notation in merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

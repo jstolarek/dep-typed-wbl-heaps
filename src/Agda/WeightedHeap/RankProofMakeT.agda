@@ -267,6 +267,17 @@ proof-2 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
                               ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-2 l1 r1 l2 r2 = cong suc (lemma-B l2 r2 (l1 + r1))
 
+-- Inlining lemmas A and B into proof-2 gives:
+--
+--   proof-2a : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
+--                                 ≡ suc ((l1 + r1) + suc (l2 + r2))
+--   proof-2a l1 r1 l2 r2 =
+--     cong suc (trans (+assoc l2 r2 (suc (l1 + r1)))
+--              (trans (sym (+suc (l2 + r2) (l1 + r1)))
+--              (trans (cong suc (+comm (l2 + r2) (l1 + r1)))
+--                     (+suc (l1 + r1) (l2 + r2))))
+
+
 -- Note [Notation in merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~
 --

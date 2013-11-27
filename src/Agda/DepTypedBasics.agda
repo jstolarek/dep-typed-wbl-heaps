@@ -51,9 +51,6 @@ cong f refl = refl
 subst : {A : Set}(P : A → Set) → {a b : A} → a ≡ b → P a → P b
 subst prp refl p = p
 
-subst2 : {A : Set}{P : A → Set} → {a b : A} → a ≡ b → P a → P b
-subst2 refl p = p
-
 +0 : (a : Nat) → a + zero ≡ a
 +0 zero    = refl
 +0 (suc a) = cong suc (+0 a)
