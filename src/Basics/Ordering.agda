@@ -11,7 +11,7 @@
 
 module Basics.Ordering where
 
-open import Basics.Nat --hiding (_≥_)
+open import Basics.Nat hiding (_≥_)
 
 -- The ≥ type is a proof of greater-equal relation between two natural
 -- numbers. It proofs that: a) any number is ≥ zero and b) any two
@@ -41,6 +41,3 @@ order (suc a) (suc b) with order a b
 order (suc a) (suc b) | ge ageb = ge (geS ageb)
 order (suc a) (suc b) | le bgea = le (geS bgea)
 
--- min : {a b : Nat} → Order a b → Nat
--- min {a} {b} (ge _) = b
--- min {a} {b} (le _) = a

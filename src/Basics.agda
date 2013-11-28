@@ -10,7 +10,7 @@
 
 module Basics where
 
-open import Basics.Bool
-open import Basics.Nat
-open import Basics.Ordering
-open import Basics.Reasoning
+open import Basics.Bool      public
+open import Basics.Nat       public hiding (_≥_)
+open import Basics.Ordering  public
+open import Basics.Reasoning public

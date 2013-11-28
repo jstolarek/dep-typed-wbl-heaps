@@ -9,7 +9,7 @@
 
 module Basics.Reasoning where
 
-open import Basics.Nat
+open import Basics.Nat hiding (_≥_)
 open import Basics.Ordering
 
 -- This is my definition of propositional equality. As you can see it

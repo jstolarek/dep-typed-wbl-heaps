@@ -28,19 +28,14 @@ suc n + m = suc (n + m)
 infixl 6 _+_
 
 -- Comparisons
--- _<_ : Nat → Nat → Bool
--- n     < zero  = false
--- zero  < suc n = true
--- suc n < suc m = n < m
+_<_ : Nat → Nat → Bool
+n     < zero  = false
+zero  < suc n = true
+suc n < suc m = n < m
 
--- _≥_ : Nat → Nat → Bool
--- m     ≥ zero  = true
--- zero  ≥ suc n = false
--- suc m ≥ suc n = m ≥ n
+_≥_ : Nat → Nat → Bool
+m     ≥ zero  = true
+zero  ≥ suc n = false
+suc m ≥ suc n = m ≥ n
 
--- infixl 4 _<_ _≥_
-
--- min : Nat → Nat  → Nat
--- min zero    n       = zero
--- min (suc m) zero    = zero
--- min (suc m) (suc n) = suc (min m n)
+infixl 4 _<_ _≥_

@@ -2,15 +2,16 @@
 -- Copyright: 2013, Jan Stolarek, Lodz University of Technology     --
 --                                                                  --
 -- License: See LICENSE file in root of the repo                    --
--- Repo address: https://github.com/jstolarek/dep-typed-heaps       --
+-- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Re-implements basic Haskell implementation of weight-biased      --
 -- leftist heap. No dependent types.                                --
 ----------------------------------------------------------------------
 
-module WeightedHeapMakeT where
+module NoProofsMakeT where
 
-open import Basics
+open import Basics.Nat
+open import Basics hiding (_≥_)
 
 -- TODO; Define what is rank in a weight-biased leftist heap
 Rank : Set

@@ -2,7 +2,7 @@
 -- Copyright: 2013, Jan Stolarek, Lodz University of Technology     --
 --                                                                  --
 -- License: See LICENSE file in root of the repo                    --
--- Repo address: https://github.com/jstolarek/dep-typed-heaps       --
+-- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Dependently-typed implementation of weight-biased leftist heap.  --
 -- One-pass merging algorithm with the auxiliary function inlined   --
@@ -10,9 +10,9 @@
 -- Work in progress.                                                --
 ----------------------------------------------------------------------
 
-module WeightedHeap.RankProofNoMakeT where
+module RankProofNoMakeT where
 
-open import DepTypedBasics
+open import Basics
 
 Priority : Set
 Priority = Nat

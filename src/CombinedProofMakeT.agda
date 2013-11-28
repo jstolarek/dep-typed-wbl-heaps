@@ -2,16 +2,16 @@
 -- Copyright: 2013, Jan Stolarek, Lodz University of Technology     --
 --                                                                  --
 -- License: See LICENSE file in root of the repo                    --
--- Repo address: https://github.com/jstolarek/dep-typed-heaps       --
+-- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Dependently-typed implementation of weight-biased leftist heap.  --
 -- Two-stage heap merging algorithm using auxiliary makeT function  --
 -- (see Okasaki, Chapter 3.1, pp. 17-19)                            --
 ----------------------------------------------------------------------
 
-module WeightedHeap.CombinedProofMakeT where
+module CombinedProofMakeT where
 
-open import DepTypedBasics
+open import Basics
 
 Priority : Set
 Priority = Nat
