@@ -1,6 +1,8 @@
-Dependently typed leftist heaps
-===============================
+Dependently typed weight biased leftist heaps
+=============================================
 
-This is my work on proving correctness of leftist heaps using the type system.
-Implementation is done in Haskell and in Agda. This is very early work. Don't
-expect things to make sense, work or be in an understandable language.
+Draft version of paper "Dependently typed weight biased leftist heaps" +
+companion code. This paper will be submitted to 26th International
+Conference on Computer Aided Verification (CAV’14), Vienna, Austria.
+
+Everything in this repo is a work in progress.
