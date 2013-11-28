@@ -4,8 +4,10 @@
 -- License: See LICENSE file in root of the repo                    --
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
--- This module reinvents the wheel.  We need that wheel to get      --
--- rollin.                                                          --
+-- This module re-exports all Basics/* modules for convenience.     --
+-- Note that both Basics.Nat and Basics.Ordering define ≥ operator. --
+-- Here we re-export the one from Basics.Ordering as it will be     --
+-- used most of the time.                                           --
 ----------------------------------------------------------------------
 
 module Basics where
