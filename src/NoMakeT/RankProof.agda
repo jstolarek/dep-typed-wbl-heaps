@@ -10,7 +10,7 @@
 -- Work in progress.                                                --
 ----------------------------------------------------------------------
 
-module RankProofNoMakeT where
+module NoMakeT.RankProof where
 
 open import Basics
 

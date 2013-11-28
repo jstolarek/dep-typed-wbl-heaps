@@ -9,7 +9,7 @@
 -- (see Okasaki, Chapter 3.1, pp. 17-19)                            --
 ----------------------------------------------------------------------
 
-module RankProofMakeT where
+module MakeT.RankProof where
 
 open import Basics
 

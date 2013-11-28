@@ -33,7 +33,21 @@ I will use "WBL heap" instead of Weight biased leftist heap.
 is in that module). Ordering uses concept of data as evidence (reference to
 why dep types matter). You must understand them before proceeding.
 
-2.0
+mention the repo, commenst in the code, organization
+
+2.0 - properties of heap
+
+3.0 -
+
+NoProofMakeT
+PriorityProofMakeT
+RankProofMakeT
+CombinedMakeT
+
+NoProofNoMakeT
+PriorityProofNoMakeT
+RankProofNoMakeT
+CombinedNoMakeT
 
 When we inline definition of makeT in rank proof we need to supply four
 proofs instead of 4. Previously there were 2 proofs of makeT and 2 proofs

@@ -10,7 +10,7 @@
 -- Proof of preserving correctness of priorities.                   --
 ----------------------------------------------------------------------
 
-module PriorityProofMakeT where
+module MakeT.PriorityProof where
 
 open import Basics
 
