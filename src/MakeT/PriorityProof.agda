@@ -14,13 +14,6 @@ module MakeT.PriorityProof where
 
 open import Basics
 
-Priority : Set
-Priority = Nat
-
--- We have to use rank again
-Rank : Set
-Rank = Nat
-
 -- As we shall see it becomes a problem that Heap does not have any
 -- information about its children.
 data Heap (A : Set) : Nat → Set where

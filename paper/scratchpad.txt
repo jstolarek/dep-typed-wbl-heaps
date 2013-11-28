@@ -37,6 +37,16 @@ mention the repo, commenst in the code, organization
 
 2.0 - properties of heap
 
+present WBL Heaps, mention breefly their properties
+
+we are not interested in isEmpty function - we have pattern matching
+on empty constructor
+
+Elements stored by a heap will be completely irrelevant in our proofs,
+but we keep them for completeness sake.
+
+give description of two invariants: rank of subtrees and priority in a heap
+
 3.0 -
 
 NoProofMakeT
