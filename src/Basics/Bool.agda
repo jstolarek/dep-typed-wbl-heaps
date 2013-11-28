@@ -4,13 +4,12 @@
 -- License: See LICENSE file in root of the repo                    --
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
--- This module reinvents the wheel.  We need that wheel to get      --
--- rollin.                                                          --
+-- Definition of Bool datatype, which represents logical true and   --
+-- false.                                                           --
 ----------------------------------------------------------------------
 
-module Basics where
+module Basics.Bool where
 
-open import Basics.Bool
-open import Basics.Nat
-open import Basics.Ordering
-open import Basics.Reasoning
+data Bool : Set where
+  false : Bool
+  true  : Bool
