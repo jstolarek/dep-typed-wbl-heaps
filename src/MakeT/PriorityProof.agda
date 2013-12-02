@@ -12,7 +12,9 @@
 
 module MakeT.PriorityProof where
 
+open import Basics.Nat renaming (_≥_ to _≥ℕ_)
 open import Basics
+
 
 -- To proof the invariant we will index nodes using Priority. Index of
 -- value n says that "this heap can store elements with priorities n
@@ -33,7 +35,14 @@ open import Basics
 --     to store priorities higher than p (higher priorities = smaller
 --     Nats)".
 --
--- Note that both left and right subtree of node is indexed with p.
+-- The most important thing here is that in order to create a node we
+-- need to supply a proof that priorities possible to store in
+-- children nodes are not higher than priority that can be stored in
+-- the node itself. That proof takes a form of a datatype (≥). If we
+-- can construct a value of type (p ≥ n) then existance of such a
+-- value becomes a proof that p is greater-equal to n.
+--
+-- Note that both left and right subtree of node are indexed with p.
 -- This means that element at the node has priority at least as
 -- high as its children.
 --
@@ -49,25 +58,41 @@ rank empty            = zero
 rank (node _ r _ _ _) = r
 
 -- The first question is how to create a singleton heap, ie. a Heap
--- storing one element. The questions we need to answer is "what
--- Priorities can we later store in the singleton Heap?". "Any" seems
+-- storing one element. The question we need to answer is "what
+-- Priorities can we later store in a singleton Heap?". "Any" seems
 -- to be a reasonable answer. This means the resulting Heap will be
--- index with zero, meaning "Priorities lower or equal to zero can be
+-- indexed with zero, meaning "Priorities lower or equal to zero can be
 -- stored in this Heap" (remember that any priority is lower or equal
 -- to zero). This leads us to following definition:
 singleton : (p : Priority) → Heap zero
 singleton p = node p one ge0 empty empty
 
+-- We can imagine we would like to limit the range of priorities we
+-- can insert into a singleton Heap. This means the resulting Heap
+-- would be index with some n (the bound on allowed Priority
+-- values). In such case however we are required to supply a proof
+-- than p ≥ n. This would lead us to a definition like this:
+--
+-- singletonP : {n : Nat} → (p : Priority) → p ≥ n → Heap n
+-- singletonP p p≥n = node p one p≥n empty empty
 
--- singletonP : {n : Nat} → (p : Priority) → {x : p ≥ n} → Heap n
-
+-- makeT now returns indexed heaps, so it requires one more parameter:
+-- a proof that priorities stored in resulting heap are not lower than
+-- in the subheaps.
 makeT : {n : Nat} → (p : Priority) → p ≥ n → Heap p → Heap p → Heap n
-makeT p pgen l r with rank l | rank r
-makeT p pgen l r | l-rank | r-rank with order l-rank r-rank
-makeT p pgen l r | l-rank | r-rank | ge _ = node p (suc (l-rank + r-rank)) pgen l r
-makeT p pgen l r | l-rank | r-rank | le _ = node p (suc (l-rank + r-rank)) pgen r l
+makeT p pgen l r with rank l ≥ℕ rank r
+makeT p pgen l r | true  = node p (suc (rank l + rank r)) pgen l r
+makeT p pgen l r | false = node p (suc (rank l + rank r)) pgen r l
 
-merge : {b : Nat} → Heap b → Heap b → Heap b
+-- The important change in merge is that now we don't compare node
+-- priorities using an operator that returns Bool. We compare them
+-- using "order" function that not only returns result of comparison,
+-- but also supplies a proof of the result. This proof tells us
+-- something important about the relationship between p1, p2 and
+-- priority of the merged Heap. Note that we use the new proof to
+-- reconstruct one of the heaps that is passed in recursive call to
+-- merge.
+merge : {p : Nat} → Heap p → Heap p → Heap p
 merge h1 h2 with h1 | h2
 merge h1 h2
           | empty
@@ -78,19 +103,19 @@ merge h1 h2
           | empty
           = h1
 merge h1 h2
-          | node p1 l-rank p1≥b l1 r1
-          | node p2 r-rank p2≥b l2 r2
+          | node p1 l-rank p1≥p l1 r1
+          | node p2 r-rank p2≥p l2 r2
           with order p1 p2
 merge h1 h2
-          | node p1 l-rank p1≥b l1 r1
-          | node p2 r-rank p2≥b l2 r2
+          | node p1 l-rank p1≥p l1 r1
+          | node p2 r-rank p2≥p l2 r2
           | le p1≤p2
-          = makeT p1 p1≥b l1 (merge r1 (node p2 r-rank p1≤p2 l2 r2))
+          = makeT p1 p1≥p l1 (merge r1 (node p2 r-rank p1≤p2 l2 r2))
 merge h1 h2
-          | node p1 l-rank p1≥b l1 r1
-          | node p2 r-rank p2≥b l2 r2
+          | node p1 l-rank p1≥p l1 r1
+          | node p2 r-rank p2≥p l2 r2
           | ge p1≥p2
-          = makeT p2 p2≥b l2 (merge r2 (node p1 l-rank p1≥p2 l1 r1))
+          = makeT p2 p2≥p l2 (merge r2 (node p1 l-rank p1≥p2 l1 r1))
 
 -- Again, termination checker problems. I can't create a function that
 -- just replaces the proof, because Heap's index doesn't say anything
