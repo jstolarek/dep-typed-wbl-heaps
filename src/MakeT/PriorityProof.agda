@@ -4,10 +4,9 @@
 -- License: See LICENSE file in root of the repo                    --
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
--- Weight biased leftist heap that proofs to maintain priority      --
+-- Weight biased leftist heap that proves to maintain priority      --
 -- invariant: priority at the node is not larger than priorities of --
 -- its two children.                                                --
---                                                                  --
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}

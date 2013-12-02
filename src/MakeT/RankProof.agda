@@ -4,17 +4,14 @@
 -- License: See LICENSE file in root of the repo                    --
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
--- Dependently-typed implementation of weight-biased leftist heap.  --
--- Two-stage heap merging algorithm using auxiliary makeT function  --
--- (see Okasaki, Chapter 3.1, pp. 17-19)                            --
+-- Weight biased leftist heap that proves rank invariant: size of   --
+-- left subtree of a node is not smaller than size of right         --
+-- subtree.                                                         --
 ----------------------------------------------------------------------
 
 module MakeT.RankProof where
 
 open import Basics
-
-Priority : Set
-Priority = Nat
 
 -- We use dependent types to index a tree by its size, instead of
 -- explicitly storing the size in the node constructor. Size of a tree
@@ -22,19 +19,12 @@ Priority = Nat
 -- evidence that a tree represents correct weight-biased leftist heap
 -- i.e. that size of left subtree is at least as large as size of the
 -- right one.
-data Heap (A : Set) : Nat → Set where
-  empty : Heap A zero
-  node  : {l r : Nat} → l ≥ r → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
+data Heap : Nat → Set where
+  empty : Heap zero
+  node  : {l r : Nat} → Priority → l ≥ r → Heap l → Heap r → Heap (suc (l + r))
 
--- TODO: currently there is no proof that priority of node is smaller than
--- its children. Add additional index?
-
-isEmpty : {A : Set} {n : Nat} → Heap A n → Bool
-isEmpty empty            = true
-isEmpty (node _ _ _ _ _) = false
-
-singleton : {A : Set} → Priority → A → Heap A (suc zero)
-singleton p x = node ge0 p x empty empty
+singleton : Priority  → Heap (suc zero)
+singleton p = node p ge0 empty empty
 
 -- Note [Merging algorithm]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,12 +89,12 @@ singleton p x = node ge0 p x empty empty
 --     That proof is done using congruence on suc function and
 --     commutativity of addition.
 
-makeT : {A : Set} {l r : Nat} → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
-makeT {A} {l-rank} {r-rank} p x l r with order l-rank r-rank
-makeT {A} {l-rank} {r-rank} p x l r | ge lger
-  = node lger p x l r
-makeT {A} {l-rank} {r-rank} p x l r | le rgel
-  = subst (Heap A) (cong suc (+comm r-rank l-rank)) (node rgel p x r l)
+makeT : {l r : Nat} → Priority → Heap l → Heap r → Heap (suc (l + r))
+makeT {l-rank} {r-rank} p l r with order l-rank r-rank
+makeT {l-rank} {r-rank} p l r | ge l≥r
+  = node p l≥r l r
+makeT {l-rank} {r-rank} p l r | le r≥l
+  = subst Heap (cong suc (+comm r-rank l-rank)) (node p r≥l r l)
 
 -- Note [Notation for proving heap merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -286,46 +276,45 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-B l2 r2 (l1 + r1))
 -- l2-rank and r2-rank to denote their ranks. We use h1 and h2 to
 -- denote heaps.
 
-merge : {A : Set} {l r : Nat} → Heap A l → Heap A r → Heap A (l + r)
+merge : {l r : Nat} → Heap l → Heap r → Heap (l + r)
 merge h1 h2 with h1 | h2
-merge {A} {zero} {_} h1 h2
+merge {zero} {_} h1 h2
           | empty
           | _
           = h2 -- See [merge, proof 0a]
-merge {A} {suc l} {zero} h1 h2
+merge {suc l} {zero} h1 h2
           | _
           | empty
-          = subst (Heap A)
+          = subst Heap
                   (sym (+0 (suc l)))  -- See [merge, proof 0b]
                   h1
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1
+          | node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2
           with p1 < p2
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1
+          | node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2
           | true
-          = subst (Heap A)
+          = subst Heap
                   (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-                  (makeT p1 x1 l1 (merge r1 h2))
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+                  (makeT p1 l1 (merge r1 h2))
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1
+          | node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2
           | false
-          = subst (Heap A)
+          = subst Heap
                   (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-                  (makeT p2 x2 l2 (merge r2 h1))
+                  (makeT p2 l2 (merge r2 h1))
 
-insert : {A : Set} {n : Nat} → Priority → A → Heap A n → Heap A (suc n)
-insert p x h = merge (singleton p x) h
+insert : {n : Nat} → Priority → Heap n → Heap (suc n)
+insert p h = merge (singleton p) h
 
-findMin : {A : Set} {n : Nat} → Heap A (suc n) → A
-findMin (node _ _ x _ _) = x
+findMin : {n : Nat} → Heap (suc n) → Priority
+findMin (node p _ _ _) = p
 
-deleteMin : {A : Set} {n : Nat} → Heap A (suc n) → Heap A n
-deleteMin (node _ _ _ l r) = merge l r
-
+deleteMin : {n : Nat} → Heap (suc n) → Heap n
+deleteMin (node _ _ l r) = merge l r
