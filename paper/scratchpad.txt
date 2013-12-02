@@ -60,6 +60,8 @@ PriorityProofNoMakeT
 RankProofNoMakeT
 CombinedNoMakeT
 
+Cite "SEMI-CONTINUOUS SIZED TYPES AND TERMINATION" by Andreas Abel
+
 When we inline definition of makeT in rank proof we need to supply four
 proofs instead of 4. Previously there were 2 proofs of makeT and 2 proofs
 of merge. New proofs will be a combination of these.
@@ -195,3 +197,16 @@ cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2)
                 (lemma-3 l2 r2 (l1 + r1)))
 
 Where lemma-3 proves point 3)
+
+
+REFERENCES:
+
+Okasaki
+
+"Agda - Equality" by Andreas Abel.
+
+"Why dependent types matter"
+
+Cite "SEMI-CONTINUOUS SIZED TYPES AND TERMINATION" by Andreas Abel
+
+Weight Biased Leftist Trees and Modified Skip Lists
