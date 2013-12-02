@@ -8,10 +8,12 @@
 -- and no dependent types.                                          --
 ----------------------------------------------------------------------
 
+{-# OPTIONS --sized-types #-}
 module MakeT.NoProofs where
 
 open import Basics.Nat
 open import Basics hiding (_≥_)
+open import Sized
 
 -- A Heap usually stores elements of some type (Set) A with an assigned
 -- priority. To keep our proofs easier to read we will only store
@@ -25,9 +27,12 @@ open import Basics hiding (_≥_)
 --
 -- Note that in this Heap we explicitly store rank of a node inside its
 -- constructor. Later we will turn it into an inductive family index.
-data Heap : Set where
-  empty : Heap
-  node  : Priority → Rank → Heap → Heap → Heap
+
+-- We use sized types to help the termination checker see that merging function
+-- is total.
+data Heap : {i : Size} → Set where
+  empty : {i : Size} → Heap {↑ i}
+  node  : {i : Size} → Priority → Rank → Heap {i} → Heap {i} → Heap {↑ i}
 
 -- Returns rank of node
 rank : Heap → Nat
@@ -48,33 +53,17 @@ makeT p l r with rank l ≥ rank r
 makeT p l r | true  = node p (suc (rank l + rank r)) l r
 makeT p l r | false = node p (suc (rank l + rank r)) r l
 
--- merge combines two heaps into one. There are two base cases and two
--- recursive cases. Recursive cases call makeT to ensure that rank
--- invariant is maintained after merging.
-merge : Heap → Heap → Heap
-merge h1 h2 with h1 | h2
-merge h1 h2
-  | empty
-  | _
-  = h1
-merge h1 h2
-  | _
-  | empty
-  = h2
-merge h1 h2
-  | (node p1 w1 l1 r1)
-  | (node p2 w2 l2 r2)
-  with p1 < p2
-merge h1 h2
-  | (node p1 w1 l1 r1)
-  | (node p2 w2 l2 r2)
-  | true
-  = makeT p1 l1 (merge r1 h2)
-merge h1 h2
-  | (node p1 w1 l1 r1)
-  | (node p2 w2 l2 r2)
-  | false
-  = makeT p2 l2 (merge h1 r2)
+-- merge combines two heaps into one. There are two base cases and two recursive
+-- cases. Recursive cases call makeT to ensure that rank invariant is maintained
+-- after merging.
+merge : {i : Size} → Heap {i} → Heap {i} → Heap
+merge empty h2 = h2
+merge h1 empty = h1
+merge (node p1 w1 l1 r1) (node p2 w2 l2 r2) with p1 < p2
+merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
+  | true  = makeT p1 l1 (merge r1 (node p2 w2 l2 r2))
+merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
+  | false = makeT p2 l2 (merge (node p1 w1 l1 r1) r2)
 
 -- Inserting is performed by merging heap with newly created singleton heap
 insert : Priority → Heap → Heap
@@ -105,7 +94,7 @@ findMinInHeap = findMin heap
 -- Removes the element with the lowest priority by merging subtrees of
 -- a root element. Again, there case of empty heap is problematic. We
 -- could give it semantics by returning empty, but this just doesn't
--- fell right. Why should we be able to remove elements from the empty
+-- feel right. Why should we be able to remove elements from the empty
 -- heap?
 deleteMin : Heap → Heap
 deleteMin empty            = {!!} -- should we insert empty?
