@@ -257,9 +257,9 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 -- Let's rewrite that proof in a different fassion to see closely what is
 -- happening at each step. Inlining lemmas A and B into proof-2 gives:
 --
---   proof-2a : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
+--   proof-2i : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
 --                                  ≡ suc ((l1 + r1) + suc (l2 + r2))
---   proof-2a l1 r1 l2 r2 =
+--   proof-2i l1 r1 l2 r2 =
 --     cong suc (trans (+assoc l2 r2 (suc (l1 + r1)))
 --              (trans (sym (+suc (l2 + r2) (l1 + r1)))
 --              (trans (cong suc (+comm (l2 + r2) (l1 + r1)))
@@ -300,7 +300,7 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 -- [suc] (l1 + r1) + suc (l2 + r2) ∎
 --
 -- We use [suc] to denote that everything happens under a call to suc (thanks to
--- using congruence). Compare this notation with code of proof-2a.
+-- using congruence). Compare this notation with code of proof-2i.
 
 
 -- Note [Notation in merge]
