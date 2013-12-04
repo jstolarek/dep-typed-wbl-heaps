@@ -25,6 +25,8 @@ takes them further by proving WBL Heap
 convention: in the text I write 0 for zero, 1 for suc zero and so on.
             0 is lowest priority
 
+            Notes in the source code taken from GHC (cite GHC paper?)
+
 A good introductory level text on reasoning via. equality is "Agda -
 Equality" by Andreas Abel.
 
@@ -39,6 +41,9 @@ mention the repo, commenst in the code, organization
 2.0 - properties of heap
 
 present WBL Heaps, mention breefly their properties
+
+I will use terms "heap" and "tree" interchangably. I will use subtree or subheap
+to refer to children of a node.
 
 we are not interested in isEmpty function - we have pattern matching
 on empty constructor
@@ -198,6 +203,10 @@ cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2)
 
 Where lemma-3 proves point 3)
 
+SUMMARY:
+
+Next steps: using ≡-Reasoning from stdlib, trying theorem proving with tactics in Idris.
+
 
 REFERENCES:
 
@@ -210,3 +219,7 @@ Okasaki
 Cite "SEMI-CONTINUOUS SIZED TYPES AND TERMINATION" by Andreas Abel
 
 Weight Biased Leftist Trees and Modified Skip Lists
+
+GHC paper (from AoS I think)
+
+Idris paper (from JFP?)

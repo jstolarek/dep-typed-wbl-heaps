@@ -16,7 +16,7 @@ open import Basics.Nat renaming (_≥_ to _≥ℕ_)
 open import Basics
 open import Sized
 
--- To proof the invariant we will index nodes using Priority. Index of
+-- To prove the invariant we will index nodes using Priority. Index of
 -- value n says that "this heap can store elements with priorities n
 -- or lower" (remember that lower priority means larger Nat). In other
 -- words heap indexed with 0 can store any Priority, while heap
@@ -90,14 +90,18 @@ makeT p pgen l r | false = node p (suc (rank l + rank r)) pgen r l
 -- priority of the merged Heap. Note that we use the new proof to
 -- reconstruct one of the heaps that is passed in recursive call to
 -- merge.
-merge : {i : Size} {p : Nat} → Heap {i} p → Heap {i} p → Heap p
+-- TODO: note the bug in termination checker
+merge : {i j : Size} {p : Nat} → Heap {i} p → Heap {j} p → Heap p
 merge empty h2 = h2
 merge h1 empty = h1
-merge .{↑ i} (node .{i} p1 l-rank p1≥p l1 r1) (node {i} p2 r-rank p2≥p l2 r2) with order p1 p2
-merge .{↑ i} (node .{i} p1 l-rank p1≥p l1 r1) (node {i} p2 r-rank p2≥p l2 r2) | le p1≤p2
-  = makeT p1 p1≥p l1 (merge r1 (node p2 r-rank p1≤p2 l2 r2))
-merge .{↑ i} (node .{i} p1 l-rank p1≥p l1 r1) (node {i} p2 r-rank p2≥p l2 r2) | ge p1≥p2
-  = makeT p2 p2≥p l2 (merge r2 (node p1 l-rank p1≥p2 l1 r1))
+merge .{↑ i} .{↑ j} (node {i} p1 l-rank p1≥p l1 r1)
+                    (node {j} p2 r-rank p2≥p l2 r2) with order p1 p2
+merge .{↑ i} .{↑ j} (node {i} p1 l-rank p1≥p l1 r1)
+                    (node {j} p2 r-rank p2≥p l2 r2) | le p1≤p2
+  = makeT p1 p1≥p l1 (merge {i} {↑ j} r1 (node p2 r-rank p1≤p2 l2 r2))
+merge .{↑ i} .{↑ j} (node {i} p1 l-rank p1≥p l1 r1)
+                    (node {j} p2 r-rank p2≥p l2 r2) | ge p1≥p2
+  = makeT p2 p2≥p l2 (merge {↑ i} {j} (node p1 l-rank p1≥p2 l1 r1) r2)
 
 -- When writing indexed insert function we once again have to answer a
 -- question of how to index input and output Heap. The easiest
@@ -106,15 +110,6 @@ merge .{↑ i} (node .{i} p1 l-rank p1≥p l1 r1) (node {i} p2 r-rank p2≥p l2 
 -- be indexed by zero:
 insert : Priority → Heap zero → Heap zero
 insert p h = merge (singleton p) h
-
--- Now we can create an example heap. The only difference between this
--- heap and the heap without any proofs is that we need to explicitly
--- instantiate implicit parameter to empty constructor.
-heap : Heap zero
-heap = insert (suc (suc zero))
-      (insert (suc zero)
-      (insert zero
-      (insert (suc (suc (suc zero))) (empty {n = zero}))))
 
 -- What if we actaully want to enforce bounds imposed on the heap by its index?
 -- In that situation we are required to provide proof that the index we are
@@ -176,3 +171,12 @@ findMin (node p _ _ _ _) = p
 deleteMin : {b : Priority} → Heap b → Heap b
 deleteMin empty                 = {!!}
 deleteMin (node p rank p≥b l r) = merge (liftBound p≥b l) (liftBound p≥b r)
+
+-- Now we can create an example heap. The only difference between this
+-- heap and the heap without any proofs is that we need to explicitly
+-- instantiate implicit parameter to empty constructor.
+heap : Heap zero
+heap = insert (suc (suc zero))
+      (insert (suc zero)
+      (insert zero
+      (insert (suc (suc (suc zero))) (empty {n = zero}))))

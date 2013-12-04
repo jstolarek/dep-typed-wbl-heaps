@@ -29,7 +29,7 @@ open import Sized
 -- constructor. Later we will turn it into an inductive family index.
 
 -- We use sized types to help the termination checker see that merging function
--- is total.
+-- is total. TODO: Write some more.
 data Heap : {i : Size} → Set where
   empty : {i : Size} → Heap {↑ i}
   node  : {i : Size} → Priority → Rank → Heap {i} → Heap {i} → Heap {↑ i}
@@ -42,6 +42,47 @@ rank (node _ r _ _) = r
 -- Creates heap containing a single element with a give priority
 singleton : Priority → Heap
 singleton p = node p one empty empty
+
+-- Note [Merging algorithm]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- We use a two-pass merging algorithm. One pass, implemented by
+-- merge, performs merging in a top-down manner. Second one,
+-- implemented by makeT, ensures that invarinats of weight-biased
+-- leftist tree are not violated by creating a node fulfilling the
+-- invariant.
+--
+-- Merge function analyzes four cases cases. Two of them are bases
+-- cases:
+--
+--    a) h1 is empty - return h2
+--
+--    b) h2 is empty - return h1
+--
+-- The other two form the inductive definition of merge:
+--
+--    c) p1 < p2, in which case p1 becomes the root, l1 becomes its
+--       one child and result of merging r1 with h2 becomes the other
+--       child:
+--
+--               p1
+--              /  \
+--             /    \
+--            l1  r1+h2
+--
+--    d) p2 < p1, in which case p2 becomes the root, l2 becomes its
+--       one child and result of merging r2 with h1 becomes the other
+--       child.
+--
+--               p2
+--              /  \
+--             /    \
+--            l2  r2+h1
+--
+-- In inductive cases we pass both childred - i.e. either l1 and r1+h2
+-- or l2 and r2+h1 - to makeT which creates a new node by inspecting
+-- sizes of children and swapping them if necessary.
+
 
 -- makeT takes an element with its priority and two heaps (trees). It
 -- constructs a new heap with element at the root and two heaps as
@@ -69,14 +110,6 @@ merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
 insert : Priority → Heap → Heap
 insert p h = merge (singleton p) h
 
--- Let's construct an example heap by inserting following priorities into an
--- empty heap: 3, 0, 1, 2.
-heap : Heap
-heap = insert (suc (suc zero))
-      (insert (suc zero)
-      (insert zero
-      (insert (suc (suc (suc zero))) empty)))
-
 -- Returns element with lowest priority, ie. root element. Here we
 -- encounter first serious problem: we can't return anything for empty
 -- node. If this was Haskell we could throw an error, but Agda is a
@@ -87,10 +120,6 @@ findMin : Heap → Priority
 findMin empty          = {!!} -- can't insert anything here!
 findMin (node p _ _ _) = p
 
--- Example usage of findMin
-findMinInHeap : Priority
-findMinInHeap = findMin heap
-
 -- Removes the element with the lowest priority by merging subtrees of
 -- a root element. Again, there case of empty heap is problematic. We
 -- could give it semantics by returning empty, but this just doesn't
@@ -99,6 +128,18 @@ findMinInHeap = findMin heap
 deleteMin : Heap → Heap
 deleteMin empty            = {!!} -- should we insert empty?
 deleteMin (node _ _ l r) = merge l r
+
+-- As a quick sanity check let's construct some examples. Here's a heap
+-- constructed by inserting following priorities into an empty heap: 3, 0, 1, 2.
+heap : Heap
+heap = insert (suc (suc zero))
+      (insert (suc zero)
+      (insert zero
+      (insert (suc (suc (suc zero))) empty)))
+
+-- Example usage of findMin
+findMinInHeap : Priority
+findMinInHeap = findMin heap
 
 -- Example usage of deleteMin
 deleteMinFromHeap : Heap
