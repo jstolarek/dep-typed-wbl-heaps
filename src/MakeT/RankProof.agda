@@ -36,6 +36,9 @@ data Heap : {i : Size} → Rank → Set where
   node  : {i : Size} {l r : Rank} → Priority → l ≥ r →
           Heap {i} l → Heap {i} r → Heap {↑ i} (suc (l + r))
 
+-- Since rank is now an index we no longer need rank function to extract Rank
+-- from a node.
+
 -- Singleton heap stores only one element. Therefore it has size of one. To
 -- prove the rank invariant we must show that 0 ≥ 0. We can proove this with ge0
 -- constructor.

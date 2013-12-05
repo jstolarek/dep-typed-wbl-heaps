@@ -82,14 +82,14 @@ makeT p pgen l r with rank l ≥ℕ rank r
 makeT p pgen l r | true  = node p (suc (rank l + rank r)) pgen l r
 makeT p pgen l r | false = node p (suc (rank l + rank r)) pgen r l
 
--- The important change in merge is that now we don't compare node
--- priorities using an operator that returns Bool. We compare them
--- using "order" function that not only returns result of comparison,
--- but also supplies a proof of the result. This proof tells us
--- something important about the relationship between p1, p2 and
--- priority of the merged Heap. Note that we use the new proof to
--- reconstruct one of the heaps that is passed in recursive call to
--- merge.
+-- The important change in merge is that now we don't compare node priorities
+-- using an operator that returns Bool. We compare them using "order" function
+-- that not only returns result of comparison, but also supplies a proof of the
+-- result. This proof tells us something important about the relationship
+-- between p1, p2 and priority of the merged Heap. Note that we use the new
+-- proof to reconstruct one of the heaps that is passed in recursive call to
+-- merge. We must do this because by comparing priorities p1 and p2 we learned
+-- something new about restriction placed on priorities in one of the heaps.
 -- TODO: note the bug in termination checker
 merge : {i j : Size} {p : Nat} → Heap {i} p → Heap {j} p → Heap p
 merge empty h2 = h2

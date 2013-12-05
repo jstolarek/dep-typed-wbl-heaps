@@ -71,6 +71,8 @@ When we inline definition of makeT in rank proof we need to supply four
 proofs instead of 4. Previously there were 2 proofs of makeT and 2 proofs
 of merge. New proofs will be a combination of these.
 
+Give link to agda's issue tracker for bug #59 (problems with termination checker)
+
 Proofs of makeT:
 
 1) trivial
