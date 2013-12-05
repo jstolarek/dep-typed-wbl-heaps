@@ -24,8 +24,13 @@ open import Basics.Reasoning public
 Rank : Set
 Rank = Nat
 
--- Priority assigned to elements stored in a Heap. 0 represents the
--- highest priority.
+-- Priority assigned to elements stored in a Heap.
+--
+-- CONVENTION: Lower number means higher Priority. Therefore the highest
+-- Priority is zero. It will sometimes be more convenient not to use this
+-- inversed terminology. We will then use terms "smaller" and "greater" (in
+-- contrast to "lower" and "higher"). Example: Priority 3 is higher than 5, but
+-- 3 is smaller than 5.
 Priority : Set
 Priority = Nat
 

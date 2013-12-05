@@ -15,31 +15,40 @@ open import Basics.Nat
 open import Basics hiding (_≥_)
 open import Sized
 
--- A Heap usually stores elements of some type (Set) A with an assigned
--- priority. To keep our proofs easier to read we will only store
--- Priorities. Priority is a Natural number.
+-- Weight biased leftist heap is implemented using a binary tree. We
+-- will interchangeably refer to children of a node as subtrees or
+-- subheaps.
 --
--- CONVENTION: Lower number means higher Priority. Therefore the highest
--- Priority is zero. It will sometimes be more convenient not to use this
--- inversed terminology. We will then use terms "smaller" and "greater" (in
--- contrast to "lower" and "higher"). Example: Priority 3 is higher than 5, but
--- 3 is smaller than 5.
---
--- Note that in this Heap we explicitly store rank of a node inside its
--- constructor. Later we will turn it into an inductive family index.
+-- A Heap usually stores elements of some type (Set) A with an
+-- assigned priority. To keep our code easier to read each node will
+-- only store Priority (a Natural number). This will not affect in any
+-- way the proofs we are conducting.
 
--- We use sized types to help the termination checker see that merging function
--- is total. TODO: Write some more.
+-- We begin with a simple implementation that uses no dependent
+-- types. Note the we explicitly store rank in node constructor (rank
+-- is defined as number of elements in a tree). This is not strictly
+-- necessary. Theoretically this information is redundant - we could
+-- just compute the size of a tree whenever we need it. The reason I
+-- choose to store it in a node is that later, when we come to proving
+-- the rank invariant, it will be instructive to show how information
+-- stored inside a constructor is turned into an inductive family
+-- index.
+
+-- One more thing to note is that we will define our Heaps to be sized
+-- types, ie. they will use an implict index that defines how a
+-- constructor affects the inductive size of the data structure. This
+-- information is used to guide the termination checker in the
+-- definitions of merge.
 data Heap : {i : Size} → Set where
   empty : {i : Size} → Heap {↑ i}
   node  : {i : Size} → Priority → Rank → Heap {i} → Heap {i} → Heap {↑ i}
 
--- Returns rank of node
+-- Returns rank of node.
 rank : Heap → Nat
-rank empty            = zero
+rank empty          = zero
 rank (node _ r _ _) = r
 
--- Creates heap containing a single element with a give priority
+-- Creates heap containing a single element with a given Priority
 singleton : Priority → Heap
 singleton p = node p one empty empty
 
@@ -48,9 +57,17 @@ singleton p = node p one empty empty
 --
 -- We use a two-pass merging algorithm. One pass, implemented by
 -- merge, performs merging in a top-down manner. Second one,
--- implemented by makeT, ensures that invarinats of weight-biased
--- leftist tree are not violated by creating a node fulfilling the
--- invariant.
+-- implemented by makeT, ensures that rank invariant of weight biased
+-- leftist tree is not violated after merging.
+--
+-- Notation:
+--
+--  h1, h2 - heaps being merged
+--  p1, p2 - priority of root element in h1 and h2
+--  l1     - left  subtree in the first  heap
+--  r1     - right subtree in the first  heap
+--  l2     - left  subtree in the second heap
+--  r2     - right subtree in the second heap
 --
 -- Merge function analyzes four cases cases. Two of them are bases
 -- cases:
@@ -61,42 +78,41 @@ singleton p = node p one empty empty
 --
 -- The other two form the inductive definition of merge:
 --
---    c) p1 < p2, in which case p1 becomes the root, l1 becomes its
---       one child and result of merging r1 with h2 becomes the other
---       child:
+--    c) priority p1 is higher than p2 - p1 becomes the root, l1
+--       becomes its one child and result of merging r1 with h2
+--       becomes the other child:
 --
 --               p1
 --              /  \
 --             /    \
---            l1  r1+h2
+--            l1  r1+h2 -- here "+" denotes merging
 --
---    d) p2 < p1, in which case p2 becomes the root, l2 becomes its
---       one child and result of merging r2 with h1 becomes the other
---       child.
+--    d) priority p2 is higher than p2 - p2 becomes the root, l2
+--       becomes its one child and result of merging r2 with h1
+--       becomes the other child.
 --
 --               p2
 --              /  \
 --             /    \
 --            l2  r2+h1
 --
--- In inductive cases we pass both childred - i.e. either l1 and r1+h2
+-- In inductive cases we pass both childred - ie. either l1 and r1+h2
 -- or l2 and r2+h1 - to makeT which creates a new node by inspecting
 -- sizes of children and swapping them if necessary.
 
-
--- makeT takes an element with its priority and two heaps (trees). It
+-- makeT takes an element (priority) and two heaps (trees). It
 -- constructs a new heap with element at the root and two heaps as
 -- children. makeT ensures that WBL heap rank invariant is maintained
 -- in the newly created tree by reversing left and right subtrees when
--- necessary.
+-- necessary (note the inversed r and l in the last case of makeT).
 makeT : Priority → Heap → Heap → Heap
 makeT p l r with rank l ≥ rank r
 makeT p l r | true  = node p (suc (rank l + rank r)) l r
 makeT p l r | false = node p (suc (rank l + rank r)) r l
 
--- merge combines two heaps into one. There are two base cases and two recursive
--- cases. Recursive cases call makeT to ensure that rank invariant is maintained
--- after merging.
+-- merge combines two heaps into one. There are two base cases and two
+-- recursive cases - see [Merging algorithm]. Recursive cases call
+-- makeT to ensure that rank invariant is maintained after merging.
 merge : {i : Size} → Heap {i} → Heap {i} → Heap
 merge empty h2 = h2
 merge h1 empty = h1
@@ -106,31 +122,34 @@ merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
 merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
   | false = makeT p2 l2 (merge (node p1 w1 l1 r1) r2)
 
--- Inserting is performed by merging heap with newly created singleton heap
+-- Inserting is performed by merging heap with newly created singleton
+-- heap
 insert : Priority → Heap → Heap
 insert p h = merge (singleton p) h
 
--- Returns element with lowest priority, ie. root element. Here we
--- encounter first serious problem: we can't return anything for empty
--- node. If this was Haskell we could throw an error, but Agda is a
--- total language. This means that every program written in Agda
--- eventually terminates and produces a result. Throwing errors is not
--- allowed.
+-- findMin returns element with highest priority, ie. root
+-- element. Here we encounter first serious problem: we can't return
+-- anything for empty node. If this was Haskell we could throw an
+-- error, but Agda is a total language. This means that every program
+-- written in Agda eventually terminates and produces a
+-- result. Throwing errors is not allowed.
 findMin : Heap → Priority
-findMin empty          = {!!} -- can't insert anything here!
+findMin empty          = {!!}  -- does it make sense to assume default
+                               -- priority for empty heap?
 findMin (node p _ _ _) = p
 
--- Removes the element with the lowest priority by merging subtrees of
--- a root element. Again, there case of empty heap is problematic. We
+-- Removes the element with the highest priority by merging subtrees
+-- of a root element. Again the case of empty heap is problematic. We
 -- could give it semantics by returning empty, but this just doesn't
 -- feel right. Why should we be able to remove elements from the empty
 -- heap?
 deleteMin : Heap → Heap
-deleteMin empty            = {!!} -- should we insert empty?
+deleteMin empty          = {!!} -- should we insert empty?
 deleteMin (node _ _ l r) = merge l r
 
--- As a quick sanity check let's construct some examples. Here's a heap
--- constructed by inserting following priorities into an empty heap: 3, 0, 1, 2.
+-- As a quick sanity check let's construct some examples. Here's a
+-- heap constructed by inserting following priorities into an empty
+-- heap: 3, 0, 1, 2.
 heap : Heap
 heap = insert (suc (suc zero))
       (insert (suc zero)

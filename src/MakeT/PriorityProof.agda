@@ -5,7 +5,7 @@
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Weight biased leftist heap that proves to maintain priority      --
--- invariant: priority at the node is not larger than priorities of --
+-- invariant: priority at the node is not lower than priorities of  --
 -- its two children.                                                --
 ----------------------------------------------------------------------
 
@@ -26,32 +26,61 @@ open import Sized
 -- As previously, Heap has two constructors:
 --
 --  1) empty simply returns Heap n, where index n is not constrained
---     in any way. This means that empty heap can store any Priority.
+--     in any way. This means that empty heap can be given any
+--     restriction on priorities of stored elements.
 --
---  2) node also creates Heap n, but this time n is constrained: n
---     must not be greater than p, where p is index of node's
---     children. This means "if you create a Heap storing Priority p
---     as its root element then the resulting Heap will only be able
---     to store priorities higher than p (higher priorities = smaller
---     Nats)".
---
--- The most important thing here is that in order to create a node we
--- need to supply a proof that priorities possible to store in
--- children nodes are not higher than priority that can be stored in
--- the node itself. That proof takes a form of a datatype (≥). If we
--- can construct a value of type (p ≥ n) then existance of such a
--- value becomes a proof that p is greater-equal to n.
---
--- Note that both left and right subtree of node are indexed with p.
--- This means that element at the node has priority at least as
--- high as its children.
+--  2) node also creates Heap n, but this time n is constrained. If we
+--     store priority p in a node then:
+
+--       a) the resulting heap can only be restricted to store
+--          priorities at least as high as p. For example, if we
+--          create a node that stores priority 3 we cannot restrict
+--          the resulting heap to store priorities 4 and lower,
+--          because the fact that we store 3 in that node violates the
+--          restriction. This restriction is expressed by the "p ≥ n"
+--          parameter: if we can construct a value of type (p ≥ n)
+--          then existance of such a value becomes a proof that p is
+--          greater-equal to n. We must supply such proof to every
+--          node.
+
+--       b) children of a node can only be restricted to store
+--          priorities that are not higher than p. Example: if we
+--          restrict a node to store priorities 4 and lower we cannot
+--          restrict its children to store priorities 3 and
+--          higher. This restriction is expressed by index "p" in the
+--          subheaps passed to node constructor.
 data Heap : {i : Size} → Priority → Set where
   empty : {i : Size} {n : Priority} → Heap {↑ i} n
   node  : {i : Size} {n : Priority} → (p : Priority) → Rank → p ≥ n →
           Heap {i} p → Heap {i} p → Heap {↑ i} n
 
+-- Let's demonstrate that priority invariant cannot be broken. Below
+-- we construct a heap like this:
+--
+--      ?
+--     / \
+--    /   \
+--   E     0
+--
+-- where E means empty node and 0 means node storing Priority 0 (yes,
+-- this heap violates the rank invariant!). We left out the root
+-- element. The only value that can be supplied there is zero (try
+-- giving one and see that typechecker will not accept it). This is
+-- beacuse the value n with which 0 node can be index must obey the
+-- restriction 0 ≥ n. This means that 0 node can only be indexed with
+-- 0. When we try to construct ? node we are thus only allowed to
+-- insert priority 0.
+heap-broken : Heap zero
+heap-broken = node {!!} (suc one) ge0 empty (node zero one ge0 empty empty)
+
+-- Here is a correct heap. It stores one at the leaf and 0 at the
+-- root. It still violates the rank invariant - we deal with that in
+-- MakeT.RankProof.
+heap-correct : Heap zero
+heap-correct = node zero (suc one) ge0 empty (node one one ge0 empty empty)
+
 -- Again, we need a function to extract rank from a node
-rank : {n : Nat} → Heap n → Nat
+rank : {b : Priority} → Heap b → Rank
 rank empty            = zero
 rank (node _ r _ _ _) = r
 
@@ -71,8 +100,10 @@ singleton p = node p one ge0 empty empty
 -- values). In such case however we are required to supply a proof
 -- than p ≥ n. This would lead us to a definition like this:
 --
--- singletonP : {n : Nat} → (p : Priority) → p ≥ n → Heap n
+-- singletonP : {n : Priority} → (p : Priority) → p ≥ n → Heap n
 -- singletonP p p≥n = node p one p≥n empty empty
+--
+-- We'll return to that idea.
 
 -- makeT now returns indexed heaps, so it requires one more parameter:
 -- a proof that priorities stored in resulting heap are not lower than
@@ -82,15 +113,23 @@ makeT p pgen l r with rank l ≥ℕ rank r
 makeT p pgen l r | true  = node p (suc (rank l + rank r)) pgen l r
 makeT p pgen l r | false = node p (suc (rank l + rank r)) pgen r l
 
--- The important change in merge is that now we don't compare node priorities
--- using an operator that returns Bool. We compare them using "order" function
--- that not only returns result of comparison, but also supplies a proof of the
--- result. This proof tells us something important about the relationship
--- between p1, p2 and priority of the merged Heap. Note that we use the new
--- proof to reconstruct one of the heaps that is passed in recursive call to
--- merge. We must do this because by comparing priorities p1 and p2 we learned
--- something new about restriction placed on priorities in one of the heaps.
--- TODO: note the bug in termination checker
+-- The important change in merge is that now we don't compare node
+-- priorities using an operator that returns Bool. We compare them
+-- using "order" function that not only returns result of comparison,
+-- but also supplies a proof of the result. This proof tells us
+-- something important about the relationship between p1, p2 and
+-- priority of the merged Heap. Note that we use the new proof to
+-- reconstruct one of the heaps that is passed in recursive call to
+-- merge. We must do this because by comparing priorities p1 and p2 we
+-- learned something new about restriction placed on priorities in one
+-- of the heaps.
+--
+-- Note also that despite indexing our data types with Size the
+-- termination checker complains that merge function does not
+-- terminate. This is not a problem in our definitions but a bug in
+-- Agda's implementation. I leave the code in this form in hope that
+-- this bug will be fixed in a future release of Agda. For mor details
+-- see  http://code.google.com/p/agda/issues/detail?id=59#c23
 merge : {i j : Size} {p : Nat} → Heap {i} p → Heap {j} p → Heap p
 merge empty h2 = h2
 merge h1 empty = h1
