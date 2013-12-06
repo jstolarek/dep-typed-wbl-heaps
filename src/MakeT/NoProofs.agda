@@ -24,8 +24,7 @@ open import Sized
 -- only store Priority (a Natural number). This will not affect in any
 -- way the proofs we are conducting.
 
--- We begin with a simple implementation that uses no dependent
--- types. Note the we explicitly store rank in node constructor (rank
+-- We begin with a simple implementation that uses no dependent-- types. Note the we explicitly store rank in node constructor (rank
 -- is defined as number of elements in a tree). This is not strictly
 -- necessary. Theoretically this information is redundant - we could
 -- just compute the size of a tree whenever we need it. The reason I
@@ -113,7 +112,7 @@ makeT p l r | false = node p (suc (rank l + rank r)) r l
 -- merge combines two heaps into one. There are two base cases and two
 -- recursive cases - see [Merging algorithm]. Recursive cases call
 -- makeT to ensure that rank invariant is maintained after merging.
-merge : {i : Size} → Heap {i} → Heap {i} → Heap
+merge : {i j : Size} → Heap {i} → Heap {j} → Heap
 merge empty h2 = h2
 merge h1 empty = h1
 merge (node p1 w1 l1 r1) (node p2 w2 l2 r2) with p1 < p2

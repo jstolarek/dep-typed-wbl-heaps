@@ -103,15 +103,15 @@ singleton p = node p one ge0 empty empty
 -- singletonP : {n : Priority} → (p : Priority) → p ≥ n → Heap n
 -- singletonP p p≥n = node p one p≥n empty empty
 --
--- We'll return to that idea.
+-- We'll return to that idea soon.
 
 -- makeT now returns indexed heaps, so it requires one more parameter:
 -- a proof that priorities stored in resulting heap are not lower than
 -- in the subheaps.
 makeT : {n : Nat} → (p : Priority) → p ≥ n → Heap p → Heap p → Heap n
-makeT p pgen l r with rank l ≥ℕ rank r
-makeT p pgen l r | true  = node p (suc (rank l + rank r)) pgen l r
-makeT p pgen l r | false = node p (suc (rank l + rank r)) pgen r l
+makeT p p≥n l r with rank l ≥ℕ rank r
+makeT p p≥n l r | true  = node p (suc (rank l + rank r)) p≥n l r
+makeT p p≥n l r | false = node p (suc (rank l + rank r)) p≥n r l
 
 -- The important change in merge is that now we don't compare node
 -- priorities using an operator that returns Bool. We compare them
