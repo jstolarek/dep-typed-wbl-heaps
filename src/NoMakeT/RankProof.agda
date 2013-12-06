@@ -153,59 +153,47 @@ proof-4a l1 r1 l2 r2 = cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2) (lemma-
 -- l2-rank and r2-rank to denote their ranks.
 
 merge : {l r : Nat} → Heap l → Heap r → Heap (l + r)
-merge h1 h2 with h1 | h2
-merge {zero} {_} h1 h2
-          | empty
-          | _
-          = h2
-merge {suc l} {zero} h1 h2
-          | _
-          | empty
-          = subst Heap (sym (+0 (suc l))) h1
+merge {zero} {_} empty h2  = h2
+merge {suc l} {zero} h1 h2 = subst Heap (sym (+0 (suc l))) h1
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
+          (node {l1-rank} {r1-rank} l1≥r1 p1 l1 r1)
+          (node {l2-rank} {r2-rank} l2≥r2 p2 l2 r2)
           with p1 < p2
           | order l1-rank (r1-rank + suc (l2-rank + r2-rank))
           | order l2-rank (r2-rank + suc (l1-rank + r1-rank))
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
+          (node {l1-rank} {r1-rank} l1≥r1 p1 l1 r1)
+          (node {l2-rank} {r2-rank} l2≥r2 p2 l2 r2)
           | true
           | ge l1≥r1+h2
           | _
           = subst Heap
                   (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-                  (node l1≥r1+h2 p1 l1 (merge r1 h2))
+                  (node l1≥r1+h2 p1 l1 (merge r1 (node l2≥r2 p2 l2 r2)))
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
+          (node {l1-rank} {r1-rank} l1≥r1 p1 l1 r1)
+          (node {l2-rank} {r2-rank} l2≥r2 p2 l2 r2)
           | true
           | le l1≤r1+h2
           | _
           = subst Heap
                   (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-                  (node l1≤r1+h2 p1 (merge r1 h2) l1)
+                  (node l1≤r1+h2 p1 (merge r1 (node l2≥r2 p2 l2 r2)) l1)
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
+          (node {l1-rank} {r1-rank} l1≥r1 p1 l1 r1)
+          (node {l2-rank} {r2-rank} l2≥r2 p2 l2 r2)
           | false
           | _
           | ge l2≥r2+h1
           = subst Heap
                   (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 3]
-                  (node l2≥r2+h1 p2 l2 (merge r2 h1))
+                  (node l2≥r2+h1 p2 l2 (merge r2 (node l1≥r1 p1 l1 r1)))
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-          h1 h2
-          | (node {l1-rank} {r1-rank} l1ger1 p1 l1 r1)
-          | (node {l2-rank} {r2-rank} l2ger2 p2 l2 r2)
+          (node {l1-rank} {r1-rank} l1≥r1 p1 l1 r1)
+          (node {l2-rank} {r2-rank} l2≥r2 p2 l2 r2)
           | false
           | _
           | le l2≤r2+h1
           = subst Heap
                   (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 4]
-                  (node l2≤r2+h1 p2 (merge r2 h1) l2)
+                  (node l2≤r2+h1 p2 (merge r2 (node l1≥r1 p1 l1 r1)) l2)
