@@ -9,11 +9,9 @@
 -- subtree.                                                         --
 ----------------------------------------------------------------------
 
-{-# OPTIONS --sized-types #-}
 module MakeT.RankProof where
 
 open import Basics
-open import Sized
 
 -- We prove the rank invariant we will index each Heap by its size, (remember
 -- that size of a heap is its rank). Therefore index of value n says that a
@@ -31,10 +29,10 @@ open import Sized
 --
 -- We also use sized types in this case, to aid the termination checker in the
 -- merge function.
-data Heap : {i : Size} → Rank → Set where
-  empty : {i : Size} → Heap {↑ i} zero
-  node  : {i : Size} {l r : Rank} → Priority → l ≥ r →
-          Heap {i} l → Heap {i} r → Heap {↑ i} (suc (l + r))
+data Heap : Rank → Set where
+  empty : Heap zero
+  node  : {l r : Rank} → Priority → l ≥ r →
+          Heap l → Heap r → Heap (suc (l + r))
 
 -- Since rank is now an index we no longer need rank function to extract Rank
 -- from a node.
@@ -313,28 +311,28 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 -- and r2 to denote the respective subtrees and l1-rank, r1-rank,
 -- l2-rank and r2-rank to denote their ranks. We use h1 and h2 to
 -- denote heaps.
-merge : {i j : Size} {l r : Rank} → Heap {i} l → Heap {j} r → Heap (l + r)
+merge : {l r : Rank} → Heap l → Heap r → Heap (l + r)
 merge empty h2 = h2 -- See [merge, proof 0a]
-merge {_} .{_} {suc l} {zero} h1 empty
+merge {suc l} {zero} h1 empty
       = subst Heap (sym (+0 (suc l))) h1 -- See [merge, proof 0b]
-merge .{↑ i} .{↑ j} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {i} {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {j} {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
       with p1 < p2
-merge .{↑ i} .{↑ j} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {i} {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {j} {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
       | true
       = subst Heap
               (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-              (makeT p1 l1 (merge {i} {↑ j} r1 (node {j} p2 l2≥r2 l2 r2)))
-merge .{↑ i} .{↑ j} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {i} {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {j} {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+              (makeT p1 l1 (merge r1 (node p2 l2≥r2 l2 r2)))
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
       | false
       = subst Heap
               (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-              (makeT p2 l2 (merge {j} {↑ i} r2 (node {i} p1 l1≥r1 l1 r1)))
+              (makeT p2 l2 (merge r2 (node p1 l1≥r1 l1 r1)))
 
 -- We require that inserting an element into the heap increases its size by
 -- one. As previously we define insert as merge and a singleton heap. Size of
