@@ -70,15 +70,19 @@ singleton p = node p ge0 empty empty
 --
 --       suc (r + l) ≡ suc (l + r)
 --
---     That proof is done using congruence on suc function and
---     commutativity of addition.
+--     That proof is done using congruence on suc function and commutativity of
+--     addition. We will define that proof as makeT-lemma as we will be using in
+--     subsequent proofs.
+
+makeT-lemma : (a b : Nat) → suc (a + b) ≡ suc (b + a)
+makeT-lemma a b = cong suc (+comm a b)
 
 makeT : {l r : Rank} → Priority → Heap l → Heap r → Heap (suc (l + r))
 makeT {l-rank} {r-rank} p l r with order l-rank r-rank
 makeT {l-rank} {r-rank} p l r | ge l≥r
   = node p l≥r l r
 makeT {l-rank} {r-rank} p l r | le r≥l
-  = subst Heap (cong suc (+comm r-rank l-rank)) (node p r≥l r l)
+  = subst Heap (makeT-lemma r-rank l-rank) (node p r≥l r l)
 
 -- Note [Notation for proving heap merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

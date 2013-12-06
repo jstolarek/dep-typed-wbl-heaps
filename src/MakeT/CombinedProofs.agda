@@ -13,7 +13,7 @@ module MakeT.CombinedProofs where
 
 open import Basics
 open import Sized
-open import MakeT.RankProof using ( proof-1; proof-2 )
+open import MakeT.RankProof using ( makeT-lemma; proof-1; proof-2 )
 
 -- Now that we have separate proofs of priority and rank invariants we can
 -- combine them into one proof. We index Heap with two indices: one for Priority
@@ -41,7 +41,7 @@ makeT {b} {l-rank} {r-rank} p p≥n l r with order l-rank r-rank
 makeT {b} {l-rank} {r-rank} p p≥n l r | ge l≥r
   = node p p≥n l≥r l r
 makeT {b} {l-rank} {r-rank} p p≥n l r | le r≥l
-  = subst (Heap b) (cong suc (+comm r-rank l-rank)) (node p p≥n r≥l r l)
+  = subst (Heap b) (makeT-lemma r-rank l-rank) (node p p≥n r≥l r l)
 
 -- merge combines previous proofs:
 --
