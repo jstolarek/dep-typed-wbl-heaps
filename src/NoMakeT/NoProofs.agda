@@ -4,8 +4,6 @@
 -- License: See LICENSE file in root of the repo                    --
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
--- Re-implements basic Haskell implementation of weight-biased      --
--- leftist heap. No dependent types.                                --
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}

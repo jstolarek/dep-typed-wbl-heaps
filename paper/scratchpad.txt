@@ -209,6 +209,10 @@ SUMMARY:
 
 Next steps: using ≡-Reasoning from stdlib, trying theorem proving with tactics in Idris.
 
+APPENDIX:
+
+ Discussion of termination checker?
+
 
 REFERENCES:
 
