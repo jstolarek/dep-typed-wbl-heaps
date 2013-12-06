@@ -14,57 +14,11 @@ module NoMakeT.RankProof where
 
 open import Basics
 
-Priority : Set
-Priority = Nat
-
 -- Definition same as previously
-data Heap (A : Set) : Nat → Set where
-  empty : Heap A zero
-  node  : {l r : Nat} → l ≥ r → Priority → A → Heap A l → Heap A r → Heap A (suc (l + r))
+data Heap : Nat → Set where
+  empty : Heap zero
+  node  : {l r : Nat} → l ≥ r → Priority → Heap l → Heap r → Heap (suc (l + r))
 
-isEmpty : {A : Set} {n : Nat} → Heap A n → Bool
-isEmpty empty            = true
-isEmpty (node _ _ _ _ _) = false
-
-singleton : {A : Set} → Priority → A → Heap A (suc zero)
-singleton p x = node ge0 p x empty empty
-
--- Note [Notation for proving heap merge]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
---
--- In the proofs of heap merge we will use following notation:
---
---  h1, h2 - rank of heaps being merged
---  p1, p2 - priority of root element
---  l1     - rank of left subtree in the first heap
---  r1     - rank of right subtree in the first heap
---  l2     - rank of left subtree in the second heap
---  r2     - rank of right subtree in the second heap
---
--- Note that:
---
---    h1 = suc (l1 + r1)
---    h2 = suc (l2 + r2)
---
---     h1         h2
---
---     p1         p2
---    /  \       /  \
---   /    \     /    \
---  l1    r1   l2    r2
-
-
--- Note [Merging algorithm]
--- ~~~~~~~~~~~~~~~~~~~~~~~~
---
--- In all four cases we have to prove that recursive call to merge
--- produces heap of required size, which is h1 + h2. Since in the
--- proofs we always operate on l1, r1, l2 and r2 we have:
---
---   h1 + h2 ̄≡ suc (l1 + r1) + suc (l2 + r2)
---           ≡ suc ((l1 + r1) + suc (l2 + r2))
---
--- Second transformation comes from definition of _+_
 
 -- Note [merge, proof 1]
 -- ~~~~~~~~~~~~~~~~~~~~~
@@ -198,69 +152,60 @@ proof-4a l1 r1 l2 r2 = cong suc (trans (+comm ((r2 + suc (l1 + r1))) l2) (lemma-
 -- l2 and r2 to denote the respective subtrees and l1-rank, r1-rank,
 -- l2-rank and r2-rank to denote their ranks.
 
-merge : {A : Set} {l r : Nat} → Heap A l → Heap A r → Heap A (l + r)
+merge : {l r : Nat} → Heap l → Heap r → Heap (l + r)
 merge h1 h2 with h1 | h2
-merge {A} {zero} {_} h1 h2
+merge {zero} {_} h1 h2
           | empty
           | _
           = h2
-merge {A} {suc l} {zero} h1 h2
+merge {suc l} {zero} h1 h2
           | _
           | empty
-          = subst (Heap A) (sym (+0 (suc l))) h1
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+          = subst Heap (sym (+0 (suc l))) h1
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
           with p1 < p2
           | order l1-rank (r1-rank + suc (l2-rank + r2-rank))
           | order l2-rank (r2-rank + suc (l1-rank + r1-rank))
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
           | true
           | ge l1≥r1+h2
           | _
-          = subst (Heap A)
+          = subst Heap
                   (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-                  (node l1≥r1+h2 p1 x1 l1 (merge r1 h2))
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+                  (node l1≥r1+h2 p1 l1 (merge r1 h2))
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
           | true
           | le l1≤r1+h2
           | _
-          = subst (Heap A)
+          = subst Heap
                   (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-                  (node l1≤r1+h2 p1 x1 (merge r1 h2) l1)
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+                  (node l1≤r1+h2 p1 (merge r1 h2) l1)
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1
-          | node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2
+          | node {l1-rank} {r1-rank} l1ger1 p1 l1 r1
+          | node {l2-rank} {r2-rank} l2ger2 p2 l2 r2
           | false
           | _
           | ge l2≥r2+h1
-          = subst (Heap A)
+          = subst Heap
                   (proof-3 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 3]
-                  (node l2≥r2+h1 p2 x2 l2 (merge r2 h1))
-merge {A} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
+                  (node l2≥r2+h1 p2 l2 (merge r2 h1))
+merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
           h1 h2
-          | (node {l1-rank} {r1-rank} l1ger1 p1 x1 l1 r1)
-          | (node {l2-rank} {r2-rank} l2ger2 p2 x2 l2 r2)
+          | (node {l1-rank} {r1-rank} l1ger1 p1 l1 r1)
+          | (node {l2-rank} {r2-rank} l2ger2 p2 l2 r2)
           | false
           | _
           | le l2≤r2+h1
-          = subst (Heap A)
+          = subst Heap
                   (proof-4 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 4]
-                  (node l2≤r2+h1 p2 x2 (merge r2 h1) l2)
-
-insert : {A : Set} {n : Nat} → Priority → A → Heap A n → Heap A (suc n)
-insert p x h = merge (singleton p x) h
-
-findMin : {A : Set} {n : Nat} → Heap A (suc n) → A
-findMin (node _ _ x _ _) = x
-
-deleteMin : {A : Set} {n : Nat} → Heap A (suc n) → Heap A n
-deleteMin (node _ _ _ l r) = merge l r
+                  (node l2≤r2+h1 p2 (merge r2 h1) l2)

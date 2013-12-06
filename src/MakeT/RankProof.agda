@@ -327,16 +327,14 @@ merge .{↑ i} .{↑ j} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
       | true
       = subst Heap
               (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-              (makeT p1 l1 (merge {i} {↑ j} r1
-                            (node {j} {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)))
+              (makeT p1 l1 (merge {i} {↑ j} r1 (node {j} p2 l2≥r2 l2 r2)))
 merge .{↑ i} .{↑ j} {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
       (node {i} {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
       (node {j} {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
       | false
       = subst Heap
               (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-              (makeT p2 l2 (merge {j} {↑ i} r2
-                            (node {i} {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)))
+              (makeT p2 l2 (merge {j} {↑ i} r2 (node {i} p1 l1≥r1 l1 r1)))
 
 -- We require that inserting an element into the heap increases its size by
 -- one. As previously we define insert as merge and a singleton heap. Size of
