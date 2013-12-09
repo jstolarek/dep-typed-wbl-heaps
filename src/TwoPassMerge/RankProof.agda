@@ -6,16 +6,17 @@
 --                                                                  --
 -- Weight biased leftist heap that proves rank invariant: size of   --
 -- left subtree of a node is not smaller than size of right         --
--- subtree.                                                         --
+-- subtree. Uses a two-pass merging algorithm.                      --
 ----------------------------------------------------------------------
 
 module TwoPassMerge.RankProof where
 
 open import Basics
 
--- We prove the rank invariant we will index each Heap by its size,
+-- To prove the rank invariant we will index each Heap by its size,
 -- (remember that size of a heap is its rank). Therefore index of
--- value n says that a Heap stores n elements.
+-- value n says that a Heap stores n elements. When merging two heaps
+-- we will use the index to ensure that rank invariant is maintained.
 --
 -- Again, Heap has two constructor:
 --
@@ -26,32 +27,42 @@ open import Basics
 --     containing r elements. The size of resulting heap is the sum of
 --     l and r plus one for the element stored by the node itself. To
 --     enforce the rank invariant node constructor expects a proof
---     that invariant holds: a value of type l ≥ r.  If we can
+--     that invariant holds: a value of type l ≥ r. If we can
 --     construct value of this type then it proves the invariant.
---
--- We also use sized types in this case, to aid the termination
--- checker in the merge function.
 data Heap : Rank → Set where
   empty : Heap zero
   node  : {l r : Rank} → Priority → l ≥ r →
           Heap l → Heap r → Heap (suc (l + r))
 
 -- Since rank is now an index we no longer need rank function to
--- extract Rank from a node.
+-- extract Rank from a node. We can pattern match on the index
+-- instead.
 
 -- Singleton heap stores only one element. Therefore it has size of
--- one. To prove the rank invariant we must show that 0 ≥ 0. We can
--- proove this with ge0 constructor.
+-- one. To prove the rank invariant we must show that 0 ≥ 0. We
+-- construct a value of this type using ge0 constructor.
 singleton : Priority → Heap one
 singleton p = node p ge0 empty empty
 
 -- Note [Proving rank invariant (merge using makeT)]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
+-- Proving the rank invariant itself is surprisingly simple. We just
+-- need to supply a proof that rank of left subtree is not smaller
+-- than rank of right subtree. We can easily obtain evidence that it
+-- is so by using order function which return result of comparing two
+-- natural numbers (which will be tree ranks in this case) together
+-- with a proof of the result.
+--
+-- But there is a different difficulty here. Since we index heaps by
+-- their size we now require that makeT and merge construct trees of
+-- correct size. Prooving this requires some substantial work on our
+-- side.
+--
 -- We need to prove that the size of merged heap is equal to the sum
 -- of sizes of heaps being merged. Recall that our merging algorithm
 -- is two pass: we use merge to actually do the merging and makeT to
--- restore the rank invariant if necessary (see [Two-pass merging
+-- restore the rank invariant if necessary (see Note [Two-pass merging
 -- algorithm]). This means our proof will be two-stage. We need to
 -- prove that:
 --
@@ -63,12 +74,14 @@ singleton p = node p ge0 empty empty
 -- Note [Proving makeT]
 -- ~~~~~~~~~~~~~~~~~~~~
 --
--- makeT has two cases:
+-- makeT takes two subtrees of size l and r and produces a new tree of
+-- size 1 + l + r. We must prove that each of two cases of makeT
+-- returns tree of correct size:
 --
---  1) size of l is ≥ than size of r in which case no extra
---     proof is necessary.
+--  1) size of l is ≥ than size of r: no extra proof is necessary as
+--     everything follows from the definition of +.
 --
---  2) size of r is ≥ than size of l in which case we swap left and
+--  2) size of r is ≥ than size of l: in this case we swap left and
 --     right subtrees. This requires us to prove that:
 --
 --       suc (r + l) ≡ suc (l + r)
@@ -115,14 +128,14 @@ makeT {l-rank} {r-rank} p l r | le r≥l
 -- Note [Proving merge]
 -- ~~~~~~~~~~~~~~~~~~~~
 --
--- We need to prove that all four cases of merge (see [Merging
+-- We need to prove that all four cases of merge (see [Two-pass merging
 -- algorithm]) produce heap of required size, which is h1 + h2. Since
 -- in the proofs we will always operate on l1, r1, l2 and r2 we have:
 --
 --   h1 + h2 ̄≡ suc (l1 + r1) + suc (l2 + r2)
 --           ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
--- (Second transformation comes from definition of _+_). This is the
+-- (Second transformation comes from definition of +). This is the
 -- expected size and therefore the final result we must prove in every
 -- case that we analyze.
 
@@ -354,7 +367,7 @@ merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
 --
 --   (suc zero) + n
 --
--- by definition of + this can be normalized to:
+-- By definition of + this can be normalized to:
 --
 --   suc (zero + n)
 --

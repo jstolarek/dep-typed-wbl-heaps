@@ -18,6 +18,8 @@ record Heap (H : Set → Set) : Set1 where
 this paper builds on ideas presented in "Why dependent types matter" and
 takes them further by proving WBL Heap
 
+Aim is to pick up where other tutorials have left you
+
 1.2 - contributions
 
 1.3 - assumptions and conventions
@@ -26,6 +28,8 @@ convention: in the text I write 0 for zero, 1 for suc zero and so on.
             0 is lowest priority
 
             Notes in the source code taken from GHC (cite GHC paper?)
+
+code independent, repeates Sized module from standard library
 
 A good introductory level text on reasoning via. equality is "Agda -
 Equality" by Andreas Abel.
@@ -37,6 +41,10 @@ is in that module). Ordering uses concept of data as evidence (reference to
 why dep types matter). You must understand them before proceeding.
 
 mention the repo, commenst in the code, organization
+
+implementation requires new Agda from repo (which version?). Mention bugs in Agda?
+
+l≥r is a valid identifier, not a call to ≥
 
 2.0 - properties of heap
 
@@ -229,3 +237,11 @@ Weight Biased Leftist Trees and Modified Skip Lists
 GHC paper (from AoS I think)
 
 Idris paper (from JFP?)
+
+CODE TODOs:
+
+- rethink usage of sized types. Should I use them everywhere
+  consistently or only when termination checker can't manage without
+  sized types?
+
+- I think the explanation of priority proof could be better

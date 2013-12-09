@@ -15,27 +15,27 @@ open import Basics.Nat
 open import Basics hiding (_≥_)
 open import Sized
 
--- Weight biased leftist heap is implemented using a binary tree. We
--- will interchangeably refer to children of a node as subtrees or
--- subheaps.
+-- Weight biased leftist heap is implemented using a binary tree. I
+-- will interchangeably refer to children of a node as "subtrees" or
+-- "subheaps".
 --
 -- A Heap usually stores elements of some type (Set) A with an
--- assigned priority. To keep our code easier to read each node will
--- only store Priority (a Natural number). This will not affect in any
--- way the proofs we are conducting.
+-- assigned priority. However to keep code easier to read each node
+-- will only store Priority (a natural number). This will not affect
+-- in any way proofs that we are conducting.
 
 -- We begin with a simple implementation that uses no dependent
--- types. Note the we explicitly store rank in node constructor (rank
--- is defined as number of elements in a tree). This is not strictly
--- necessary. Theoretically this information is redundant - we could
--- just compute the size of a tree whenever we need it. The reason I
--- choose to store it in a node is that later, when we come to proving
--- the rank invariant, it will be instructive to show how information
+-- types. Note the we explicitly store rank in node constructor
+-- (recall that rank is defined as number of elements in a
+-- tree). Theoretically this information is redundant - we could
+-- compute the size of a tree whenever we need it. The reason I choose
+-- to store it in a node is that later, when we come to proving the
+-- rank invariant, it will be instructive to show how information
 -- stored inside a constructor is turned into an inductive family
 -- index.
 
--- One more thing to note is that we will define our Heaps to be sized
--- types, ie. they will use an implict index that defines how a
+-- One more thing to note is that we will define most of our Heaps to
+-- be sized types, ie. to use an implict index that defines how a
 -- constructor affects the inductive size of the data structure. This
 -- information is used to guide the termination checker in the
 -- definitions of merge.
@@ -55,10 +55,10 @@ singleton p = node p one empty empty
 -- Note [Two-pass merging algorithm]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- We use a two-pass merging algorithm. One pass, implemented by
--- merge, performs merging in a top-down manner. Second one,
--- implemented by makeT, ensures that rank invariant of weight biased
--- leftist tree is not violated after merging.
+-- We use a two-pass implementation of merging algorithm. One pass,
+-- implemented by merge, performs merging in a top-down manner. Second
+-- one, implemented by makeT, ensures that rank invariant of weight
+-- biased leftist tree is not violated after merging.
 --
 -- Notation:
 --
@@ -69,8 +69,7 @@ singleton p = node p one empty empty
 --  l2     - left  subtree in the second heap
 --  r2     - right subtree in the second heap
 --
--- Merge function analyzes four cases cases. Two of them are bases
--- cases:
+-- Merge function analyzes four cases. Two of them are base cases:
 --
 --    a) h1 is empty - return h2
 --
@@ -96,9 +95,11 @@ singleton p = node p one empty empty
 --             /    \
 --            l2  r2+h1
 --
--- In inductive cases we pass both childred - ie. either l1 and r1+h2
--- or l2 and r2+h1 - to makeT which creates a new node by inspecting
--- sizes of children and swapping them if necessary.
+-- Note that there is no guarantee that rank of r1+h2 (or r2+h1) will
+-- be smaller than rank of l1 (or l2). To ensure that merged heap
+-- maintains the rank invariant we pass both childred - ie. either l1
+-- and r1+h2 or l2 and r2+h1 - to makeT, which creates a new node by
+-- inspecting sizes of children and swapping them if necessary.
 
 -- makeT takes an element (priority) and two heaps (trees). It
 -- constructs a new heap with element at the root and two heaps as
@@ -124,8 +125,8 @@ merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
 merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
   | false = makeT p2 l2 (merge (node p1 w1 l1 r1) r2)
 
--- Inserting is performed by merging heap with newly created singleton
--- heap
+-- Inserting into a heap is performed by merging that heap with newly
+-- created singleton heap.
 insert : Priority → Heap → Heap
 insert p h = merge (singleton p) h
 
@@ -140,11 +141,11 @@ findMin empty          = {!!}  -- does it make sense to assume default
                                -- priority for empty heap?
 findMin (node p _ _ _) = p
 
--- Removes the element with the highest priority by merging subtrees
--- of a root element. Again the case of empty heap is problematic. We
--- could give it semantics by returning empty, but this just doesn't
--- feel right. Why should we be able to remove elements from the empty
--- heap?
+-- deleteMin removes the element with the highest priority by merging
+-- subtrees of a root element. Again the case of empty heap is
+-- problematic. We could give it semantics by returning empty, but
+-- this just doesn't feel right. Why should we be able to remove
+-- elements from the empty heap?
 deleteMin : Heap → Heap
 deleteMin empty          = {!!} -- should we insert empty?
 deleteMin (node _ _ l r) = merge l r

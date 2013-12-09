@@ -27,7 +27,7 @@ suc n + m = suc (n + m)
 
 infixl 6 _+_
 
--- Comparisons
+-- Comparisons needed in our code
 _<_ : Nat → Nat → Bool
 n     < zero  = false
 zero  < suc n = true

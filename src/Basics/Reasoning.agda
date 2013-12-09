@@ -12,20 +12,21 @@ module Basics.Reasoning where
 open import Basics.Nat hiding (_≥_)
 open import Basics.Ordering
 
--- This is my definition of propositional equality. As you can see it
--- is not universe polymorphic. It works only on Set, but not on Set1
--- and higher Sets - this will be perfectly sufficient for our
--- purposes. Using this types we can express equality between types.
+-- Basic definition we will need in our proofs is propositional
+-- equality (known as refl). Unlike refl definition provided by Agda's
+-- standard library the definition below is not universe
+-- polymorphic. It works only on Set, but not on Set1 and higher Sets
+-- - this will be perfectly sufficient for our purposes. This datatype
+-- allows to express equality between types belonging to Set.
 data _≡_ {S : Set} (s : S) : S → Set where
   refl : s ≡ s
 
 infixl 1 _≡_
 
--- Below we proove basic properties of relatons: symmetry,
+-- Below we prove basic properties of relations: symmetry,
 -- transitivity, congruence and substitution. If these proofs are not
 -- familiar I encourage to take a look at one of tutorials mentioned
 -- in Section 1.3 ("Assumptions and conventions") of the paper.
-
 sym : {A : Set} → {a b : A} → a ≡ b → b ≡ a
 sym refl = refl
 
@@ -39,10 +40,10 @@ subst : {A : Set}(P : A → Set) → {a b : A} → a ≡ b → P a → P b
 subst prp refl p = p
 
 -- We prove some basic properties of addition that we will need later
--- on in more complex proofs. I assume that you had some previous
--- exposure to these basic proofs, but nevertheless I provide
--- extensive explanations of how they work. Make sure you understand
--- how these proofs work before proceeding with rest of the paper.
+-- in more complex proofs. I assume that you had previous exposure to
+-- these basic proofs, but nevertheless I provide extensive
+-- explanations. Make sure you understand how these proofs work before
+-- proceeding with rest of the paper.
 
 -- Note [0 is right identity of addition]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,7 +56,8 @@ subst prp refl p = p
 --   suc n + m = suc (n + m)
 --
 -- But we need a separate proof that 0 is also right identity of
--- addition, ie. a + 0 ≡ a. If a is zero then we have
+-- addition, ie. a + 0 ≡ a. Proof proceeds by induction on a. If a is
+-- zero then we have:
 --
 --   0 + 0 = 0
 --
@@ -64,7 +66,7 @@ subst prp refl p = p
 --
 --   (suc a) + zero ≡ (suc a)
 --
--- From the definition of addition we have:
+-- Applying definition of addition to LHS we have:
 --
 --   suc (a + zero) ≡ suc a
 --
@@ -72,7 +74,7 @@ subst prp refl p = p
 -- congruence. This leaves us with a proof that equality holds for the
 -- parameters of suc:
 --
---   a + zero ≡ 0
+--   a + zero ≡ a
 --
 -- But that happens to be the equality we are proving at the
 -- moment. We therefore make a recursive call to (+0 a), which is
@@ -80,19 +82,19 @@ subst prp refl p = p
 --
 -- ∎
 
-+0 : (a : Nat) → a + zero ≡ a -- see [0 is right identity of addition]
++0 : (a : Nat) → a + zero ≡ a -- See Note [0 is right identity of addition]
 +0 zero    = refl
 +0 (suc a) = cong suc (+0 a)
 
 -- Note [1 + (a + b) equals a + (1 + b)]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- We will need this property surprisinly often. We proceed by
+-- We will need this property surprisingly often. We proceed by
 -- inductive proof on a. In the base case, when a = 0, we have:
 --
 --   suc (0 + b) ≡ 0 + (suc b)
 --
--- Applying definition of + we get:
+-- Applying definition of + to both sides of equality we get:
 --
 --   suc b ≡ suc b
 --
@@ -101,7 +103,7 @@ subst prp refl p = p
 --
 --   suc ((suc a) + b) ≡ (suc a) + (suc b)
 --
--- We apply second equation of + to both sides and get:
+-- We apply definition of + to both sides and get:
 --
 --   suc (suc (a + b)) ≡ suc (a + (suc b))
 --
@@ -119,8 +121,8 @@ subst prp refl p = p
 +suc zero b    = refl
 +suc (suc a) b = cong suc (+suc a b)
 
--- Note [Commtativity of addition]
--- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- Note [Commutativity of addition]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
 -- Everyone knows that a + b ≡ b + a. But Agda won't take our word and
 -- requires a formal proof. Let's proceed by induction on second
@@ -130,10 +132,10 @@ subst prp refl p = p
 --
 -- Right side reduces by the definition of + which leaves us with
 --
---  a + 0 ≡ a
+--   a + 0 ≡ a
 --
--- Luckily, we proved that earlier, so we appeal to already existing
--- proof. In the inductive case we have:
+-- We proved that earlier so we appeal to already existing proof. In
+-- the inductive case we have:
 --
 --   a + suc b ≡ (suc b) + a      [1]
 --
@@ -141,25 +143,27 @@ subst prp refl p = p
 --
 --   a + suc b ≡ suc (b + a)      [2]
 --
--- [2] is therefore the equality we have to prove. From our previous
--- proof we know that
+-- [2] is therefore the equality we have to prove. From +suc we know
+-- that
 --
 --   suc (a + b) ≡ a + (suc b)    [3]
 --
--- And we can use that to transform our left hand side. Note however
--- that in order to apply [3] to left hand side of [1] we need to
--- reverse sides the equality [3]:
+-- And we can use that to transform left hand side of [1]. Note
+-- however that in order to apply [3] to left hand side of [1] we need
+-- to reverse sides of the equality [3]:
 --
 --   a + (suc b) ≡ suc (a + b)    [4]
 --
--- We achieve this by using symmetry. Looking at right hand sides of
--- [2] and [4] we see they differ by the order of arguments to +. We
--- can prove them equal by using congruence on suc and appealing to
--- our inductive hypothesis of commutativity of addition. This means
--- we have proven two things:
+-- We achieve this by using symmetry.
 --
---   a + (suc b) ≡ suc (a + b)   [4, repeated]
---   suc (a + b) ≡ suc (b + a)   [5]
+-- Looking at right hand sides of [2] and [4] we see they differ by
+-- the order of arguments to +. We can prove them equal by using
+-- congruence on suc and appealing to our inductive hypothesis of
+-- commutativity of addition. This means we have proven two things:
+--
+--   a + (suc b) ≡ suc (a + b)   [4, repeated], from symmetry of +suc
+--   suc (a + b) ≡ suc (b + a)   [5], from congruence on suc and
+--                               inductive hypothesis
 --
 -- Combining [4] and [5] using transitivity yields the proof of [2].
 --
@@ -183,7 +187,7 @@ subst prp refl p = p
 -- Note [Associativity of addition]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- We proceed by induction on ths first parameter. In the base case we
+-- We proceed by induction on the first parameter. In the base case we
 -- have a = 0:
 --
 --   0 + (b + c) ≡ (0 + b) + c
@@ -192,12 +196,12 @@ subst prp refl p = p
 --
 --   b + c ≡ b + c
 --
--- Since this is true by definition we we prove with refl. In the
--- inductive case we have to prove:
+-- Since this is true by definition we use refl. In the inductive case
+-- we have to prove:
 --
 --   suc a + (b + c) ≡ (suc a + b) + c
 --
--- Agda normalizes each side using definition of + :
+-- Again, Agda normalizes each side using definition of + :
 --
 --   LHS: suc a + (b + c) ≡ suc (a + (b + c))
 --   RHS: (suc a + b) + c ≡ suc (a + b) + c ≡ suc ((a + b) + c)

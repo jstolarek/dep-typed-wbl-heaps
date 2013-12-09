@@ -6,7 +6,7 @@
 --                                                                  --
 -- Weight biased leftist heap that proves to maintain priority      --
 -- invariant: priority at the node is not lower than priorities of  --
--- its two children.                                                --
+-- its two children. Uses a two-pass merging algorithm.             --
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
@@ -16,18 +16,25 @@ open import Basics.Nat renaming (_≥_ to _≥ℕ_)
 open import Basics
 open import Sized
 
--- To prove the invariant we will index nodes using Priority. Index of
--- value n says that "this heap can store elements with priorities n
--- or lower" (remember that lower priority means larger Nat). In other
--- words heap indexed with 0 can store any Priority, while heap
+-- Priority invariant says that: for any node in the tree priority in
+-- that node is higher than priority stored by its children. This
+-- means that any path from root to leaf is ordered (highest priority
+-- at the root, lowest at the leaf). This property allows us to
+-- construct an efficient merging operation (see paper for more
+-- details).
+--
+-- To prove this invariant we will index nodes using Priority. Index
+-- of value n says that "this heap can store elements with priorities
+-- n or lower" (remember that lower priority means larger Nat). In
+-- other words Heap indexed with 0 can store any Priority, while Heap
 -- indexed with 3 can store priorities 3, 4 and lower, but can't store
 -- 0, 1 and 2.
 --
 -- As previously, Heap has two constructors:
 --
---  1) empty simply returns Heap n, where index n is not constrained
---     in any way. This means that empty heap can be given any
---     restriction on priorities of stored elements.
+--  1) empty returns Heap n, where index n is not constrained in any
+--     way. This means that empty heap can be given any restriction on
+--     priorities of stored elements.
 --
 --  2) node also creates Heap n, but this time n is constrained. If we
 --     store priority p in a node then:
@@ -97,33 +104,34 @@ singleton p = node p one ge0 empty empty
 
 -- We can imagine we would like to limit the range of priorities we
 -- can insert into a singleton Heap. This means the resulting Heap
--- would be index with some n (the bound on allowed Priority
+-- would be index with some b (the bound on allowed Priority
 -- values). In such case however we are required to supply a proof
--- than p ≥ n. This would lead us to a definition like this:
+-- than p ≥ b. This would lead us to a definition like this:
 --
--- singletonP : {n : Priority} → (p : Priority) → p ≥ n → Heap n
--- singletonP p p≥n = node p one p≥n empty empty
+-- singletonP : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+-- singletonP p p≥b = node p one p≥b empty empty
 --
 -- We'll return to that idea soon.
 
 -- makeT now returns indexed heaps, so it requires one more parameter:
 -- a proof that priorities stored in resulting heap are not lower than
 -- in the subheaps.
-makeT : {n : Nat} → (p : Priority) → p ≥ n → Heap p → Heap p → Heap n
-makeT p p≥n l r with rank l ≥ℕ rank r
-makeT p p≥n l r | true  = node p (suc (rank l + rank r)) p≥n l r
-makeT p p≥n l r | false = node p (suc (rank l + rank r)) p≥n r l
+makeT : {b : Nat} → (p : Priority) → p ≥ b → Heap p → Heap p → Heap b
+makeT p p≥b l r with rank l ≥ℕ rank r
+makeT p p≥b l r | true  = node p (suc (rank l + rank r)) p≥b l r
+makeT p p≥b l r | false = node p (suc (rank l + rank r)) p≥b r l
 
 -- The important change in merge is that now we don't compare node
 -- priorities using an operator that returns Bool. We compare them
 -- using "order" function that not only returns result of comparison,
 -- but also supplies a proof of the result. This proof tells us
 -- something important about the relationship between p1, p2 and
--- priority of the merged Heap. Note that we use the new proof to
--- reconstruct one of the heaps that is passed in recursive call to
+-- priority bound of the merged Heap. Note that we use the new proof
+-- to reconstruct one of the heaps that is passed in recursive call to
 -- merge. We must do this because by comparing priorities p1 and p2 we
 -- learned something new about restriction placed on priorities in one
--- of the heaps.
+-- of the heaps and we can now be more precise in expressing these
+-- restrictions.
 --
 -- Note also that despite indexing our data types with Size the
 -- termination checker complains that merge function does not
@@ -151,24 +159,25 @@ merge .{↑ i} .{↑ j}
 
 -- When writing indexed insert function we once again have to answer a
 -- question of how to index input and output Heap. The easiest
--- solution is to be liberal: let the input and output Heap have no
--- limitations on Priorities they can store. In other words, let they
--- be indexed by zero:
+-- solution is to be liberal: let us require that the input and output
+-- Heap have no limitations on Priorities they can store. In other
+-- words, let they be indexed by zero:
 insert : Priority → Heap zero → Heap zero
 insert p h = merge (singleton p) h
 
--- What if we actaully want to enforce bounds imposed on the heap by
--- its index?  In that situation we are required to provide proof that
--- the index we are inserting into the Heap can really be insterted
--- into it. To do this we will need a few additional functions. First
--- of all we need a new singleton function that will construct a
--- singleton Heap with a bound (this requires us to supply additional
--- parameter that is evidence that priority we just inserted into our
--- singleton heap is lower than the bound).
-singletonE : {n : Priority} → (p : Priority) → p ≥ n → Heap n
-singletonE p pr = node p one pr empty empty
+-- But what if we actaully want to enforce bounds imposed on the heap
+-- by its index? In that situation we are required to provide proof
+-- that the priority we are inserting into the Heap can really be
+-- insterted into it. To do this we will need a few additional
+-- functions. First of all we need a new singleton function that will
+-- construct a singleton Heap with a bound. This requires us to supply
+-- additional parameter that is evidence that priority we just
+-- inserted into our singleton heap is lower than the bound.
+singletonE : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+singletonE p p≥b = node p one p≥b empty empty
 
--- We need a proof of transitivity of ≥. Our base case is:
+-- We also need a proof of transitivity of ≥. We proceed by induction
+-- on c. Our base case is:
 --
 --   a ≥ b ∧ b ≥ 0 ⇒ a ≥ 0
 --
@@ -180,7 +189,7 @@ singletonE p pr = node p one pr empty empty
 ≥trans a≥b        ge0      = ge0
 ≥trans (geS a≥b) (geS b≥c) = geS (≥trans a≥b b≥c)
 
--- Having prooved the transitivity of ≥ we can construct a function
+-- Having proved the transitivity of ≥ we can construct a function
 -- that loosens the bound we put on a heap. If we have a heap with a
 -- bound p - meaning that all priorities in a heap are guaranteed to
 -- be lower than or equal to p - and we also have evidence than n is a
@@ -189,21 +198,22 @@ singletonE p pr = node p one pr empty empty
 -- Heap 5, ie. all elements in the heap are 5 or greater, and we have
 -- evidence that 5 ≥ 3, then we can convert Heap 5 to Heap 3. Note how
 -- we are prevented from writing wrong code: if we have Heap 3 we
--- cannot convert it to Heap 5. This is not possible in theory: Heap 3
--- may contain 4, but Heap 5 is expected to contain elements not
--- smaller than 5. It is also not possible practically: thanks to our
--- definition of ≥ we can't orivude evidence that 3 ≥ 5.
+-- cannot convert it to Heap 5. This is not possible from theoretical
+-- point of viwe: Heap 3 may contain 4, but Heap 5 is expected to
+-- contain elements not smaller than 5. It is also not possible
+-- practically: thanks to our definition of ≥ we can't orivide
+-- evidence that 3 ≥ 5 because we cannot construct value of that type.
 liftBound : {p b : Priority} → b ≥ p → Heap b → Heap p
 liftBound b≥n empty = empty
 liftBound b≥n (node p rank p≥b l r)
   = node p rank (≥trans p≥b b≥n) l r
 
 -- With singletonE and liftBound we can construct insert function that
--- allows to insert element with priority p into a Heap bound by n,
--- but only if we can supply evidence that p ≥ n, ie. that p can
+-- allows to insert element with priority p into a Heap bound by b,
+-- but only if we can supply evidence that p ≥ b, ie. that p can
 -- actually be stored in the heap.
-insertE : {n : Priority} → (p : Priority) → p ≥ n → Heap p → Heap n
-insertE p p≥n h = merge (singletonE p p≥n) (liftBound p≥n h)
+insertE : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+insertE p p≥b h = merge (singletonE p p≥b) (liftBound p≥b h)
 
 -- Again, findMin and deletMin are incomplete
 findMin : {b : Priority} → Heap b → Priority
@@ -215,7 +225,7 @@ findMin (node p _ _ _ _) = p
 -- same. This happens because relation between priorities in a node
 -- and it's children is ≥, not > (ie. equality is allowed). We cannot
 -- therefore guearantee that bound on priority will increase after
--- removing highest-priority element from the Heap.  When we merge
+-- removing highest-priority element from the Heap. When we merge
 -- left and right subtrees we need to lift their bounds so they are
 -- now both b (not p).
 deleteMin : {b : Priority} → Heap b → Heap b
@@ -224,7 +234,7 @@ deleteMin (node p rank p≥b l r) = merge (liftBound p≥b l) (liftBound p≥b r
 
 -- Now we can create an example heap. The only difference between this
 -- heap and the heap without any proofs is that we need to explicitly
--- instantiate implicit parameter to empty constructor.
+-- instantiate implicit Priority parameter if empty constructor.
 heap : Heap zero
 heap = insert (suc (suc zero))
       (insert (suc zero)

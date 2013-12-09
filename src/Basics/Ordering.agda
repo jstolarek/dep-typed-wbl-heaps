@@ -6,7 +6,7 @@
 --                                                                  --
 -- Definition of datatypes that represent ordering and functions    --
 -- that operate on them. These datatypes are based on ideas         --
--- introduced in "Why Dependent Types Matter" (see bibliography).   --
+-- introduced in "Why Dependent Types Matter".                      --
 ----------------------------------------------------------------------
 
 module Basics.Ordering where
@@ -14,9 +14,9 @@ module Basics.Ordering where
 open import Basics.Nat hiding (_≥_)
 
 -- The ≥ type is a proof of greater-equal relation between two natural
--- numbers. It proofs that: a) any number is ≥ zero and b) any two
--- natural numbers are in ≥ relation if their predecessors are also in
--- that relation.
+-- numbers. It proves that: a) any number natural is greater or equal
+-- to zero and b) any two natural numbers are in ≥ relation if their
+-- predecessors are also in that relation.
 data _≥_ : Nat → Nat → Set where
   ge0 : {y : Nat}                   → y     ≥ zero
   geS : {x : Nat} {y : Nat} → x ≥ y → suc x ≥ suc y
@@ -33,11 +33,10 @@ data Order : Nat → Nat → Set where
 
 -- order function takes two natural numbers and compares them,
 -- returning the result of comparison together with a proof of the
--- result.
+-- result (result and its proof are encoded by Order datatype).
 order : (a : Nat) → (b : Nat) → Order a b
 order a       zero    = ge ge0
 order zero    (suc b) = le ge0
 order (suc a) (suc b) with order a b
-order (suc a) (suc b) | ge ageb = ge (geS ageb)
-order (suc a) (suc b) | le bgea = le (geS bgea)
-
+order (suc a) (suc b) | ge a≥b = ge (geS a≥b)
+order (suc a) (suc b) | le b≥a = le (geS b≥a)
