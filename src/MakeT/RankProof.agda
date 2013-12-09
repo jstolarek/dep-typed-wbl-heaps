@@ -13,44 +13,47 @@ module MakeT.RankProof where
 
 open import Basics
 
--- We prove the rank invariant we will index each Heap by its size, (remember
--- that size of a heap is its rank). Therefore index of value n says that a
--- Heap stores n elements.
+-- We prove the rank invariant we will index each Heap by its size,
+-- (remember that size of a heap is its rank). Therefore index of
+-- value n says that a Heap stores n elements.
 --
 -- Again, Heap has two constructor:
 --
---  1) empty constructs a heap containing no elements. Therefore the index is 0.
+--  1) empty constructs a heap containing no elements. Therefore the
+--     index is 0.
 --
---  2) node takes two subtrees: one containing l elements, the other containing
---     r elements. The size of resulting heap is the sum of l and r plus one for
---     the element stored by the node itself. To enforce the rank invariant node
---     constructor expects a proof that invariant holds: a value of type l ≥ r.
---     If we can construct value of this type then it proves the invariant.
+--  2) node takes two subtrees: one containing l elements, the other
+--     containing r elements. The size of resulting heap is the sum of
+--     l and r plus one for the element stored by the node itself. To
+--     enforce the rank invariant node constructor expects a proof
+--     that invariant holds: a value of type l ≥ r.  If we can
+--     construct value of this type then it proves the invariant.
 --
--- We also use sized types in this case, to aid the termination checker in the
--- merge function.
+-- We also use sized types in this case, to aid the termination
+-- checker in the merge function.
 data Heap : Rank → Set where
   empty : Heap zero
   node  : {l r : Rank} → Priority → l ≥ r →
           Heap l → Heap r → Heap (suc (l + r))
 
--- Since rank is now an index we no longer need rank function to extract Rank
--- from a node.
+-- Since rank is now an index we no longer need rank function to
+-- extract Rank from a node.
 
--- Singleton heap stores only one element. Therefore it has size of one. To
--- prove the rank invariant we must show that 0 ≥ 0. We can proove this with ge0
--- constructor.
+-- Singleton heap stores only one element. Therefore it has size of
+-- one. To prove the rank invariant we must show that 0 ≥ 0. We can
+-- proove this with ge0 constructor.
 singleton : Priority → Heap one
 singleton p = node p ge0 empty empty
 
 -- Note [Proving rank invariant (merge using makeT)]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- We need to prove that the size of merged heap is equal to the sum of sizes of
--- heaps being merged. Recall that our merging algorithm is two pass: we use
--- merge to actually do the merging and makeT to restore the rank invariant if
--- necessary (see [Two-pass merging algorithm]). This means our proof will be
--- two-stage. We need to prove that:
+-- We need to prove that the size of merged heap is equal to the sum
+-- of sizes of heaps being merged. Recall that our merging algorithm
+-- is two pass: we use merge to actually do the merging and makeT to
+-- restore the rank invariant if necessary (see [Two-pass merging
+-- algorithm]). This means our proof will be two-stage. We need to
+-- prove that:
 --
 --  1) makeT creates a node of required size, even if it swaps left
 --     and right children.
@@ -70,9 +73,9 @@ singleton p = node p ge0 empty empty
 --
 --       suc (r + l) ≡ suc (l + r)
 --
---     That proof is done using congruence on suc function and commutativity of
---     addition. We will define that proof as makeT-lemma as we will be using in
---     subsequent proofs.
+--     That proof is done using congruence on suc function and
+--     commutativity of addition. We will define that proof as
+--     makeT-lemma as we will be using in subsequent proofs.
 
 makeT-lemma : (a b : Nat) → suc (a + b) ≡ suc (b + a)
 makeT-lemma a b = cong suc (+comm a b)
@@ -113,18 +116,18 @@ makeT {l-rank} {r-rank} p l r | le r≥l
 -- ~~~~~~~~~~~~~~~~~~~~
 --
 -- We need to prove that all four cases of merge (see [Merging
--- algorithm]) produce heap of required size, which is h1 + h2. Since in
--- the proofs we will always operate on l1, r1, l2 and r2 we have:
+-- algorithm]) produce heap of required size, which is h1 + h2. Since
+-- in the proofs we will always operate on l1, r1, l2 and r2 we have:
 --
 --   h1 + h2 ̄≡ suc (l1 + r1) + suc (l2 + r2)
 --           ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
--- (Second transformation comes from definition of _+_). This is the expected
--- size and therefore the final result we must prove in every case that we
--- analyze.
+-- (Second transformation comes from definition of _+_). This is the
+-- expected size and therefore the final result we must prove in every
+-- case that we analyze.
 
--- It is best to study the implementation of merge now and then read the
--- explanation of proofs.
+-- It is best to study the implementation of merge now and then read
+-- the explanation of proofs.
 
 -- Note [merge, proof 0a]
 -- ~~~~~~~~~~~~~~~~~~~~~~
@@ -143,21 +146,21 @@ makeT {l-rank} {r-rank} p l r | le r≥l
 --
 --    h1 ≡ h1 + 0
 --
--- This is a simple statement that 0 is right identity of addition. We proved
--- that as one of basic properties of addition in Basics.Reasoning module,
--- except our proof had the sides of equality reversed, ie. we proved a + 0 ≡ a,
--- not a ≡ a + 0). We use symmetry to construct a proof of latter from the
--- former.
+-- This is a simple statement that 0 is right identity of addition. We
+-- proved that as one of basic properties of addition in
+-- Basics.Reasoning module, except our proof had the sides of equality
+-- reversed, ie. we proved a + 0 ≡ a, not a ≡ a + 0). We use symmetry
+-- to construct a proof of latter from the former.
 --
 -- ∎
 
 -- Note [merge, proof 1]
 -- ~~~~~~~~~~~~~~~~~~~~~
 --
--- We have p1 < p2. We keep p1 as the root and need to prove that merging r1
--- with h2 gives correct size.  Here's how the term that performs the merge
--- corresponds to its type (for the sake of readability I elided implict
--- parameters):
+-- We have p1 < p2. We keep p1 as the root and need to prove that
+-- merging r1 with h2 gives correct size.  Here's how the term that
+-- performs the merge corresponds to its type (for the sake of
+-- readability I elided implict parameters):
 --
 --   makeT p1 x1 l1 (merge r1 (node p2 l2≥r2 l2 r2))
 --    |          |         |   \__________________/
@@ -172,8 +175,8 @@ makeT {l-rank} {r-rank} p l r | le r≥l
 --
 --   suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
--- Recall that RHS of this equality comes from [Proving merge]. We begin proof
--- with congruence on suc:
+-- Recall that RHS of this equality comes from [Proving merge]. We
+-- begin proof with congruence on suc:
 --
 --   cong suc X
 --
@@ -197,9 +200,9 @@ proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 -- Note [merge, proof 2]
 -- ~~~~~~~~~~~~~~~~~~~~~
 --
--- We have p2 < p1. We keep p2 as the root and need to prove that merging r2
--- with h1 gives correct size. Again, here's the corespondence between the term
--- and its type:
+-- We have p2 < p1. We keep p2 as the root and need to prove that
+-- merging r2 with h1 gives correct size. Again, here's the
+-- corespondence between the term and its type:
 --
 --   makeT p2 x2 l2 (merge r2 (node p1 l1≥r1 l1 r1))
 --    |          |         |   \_________________/
@@ -213,9 +216,9 @@ proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 --
 --   suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
--- Again we use cong to deal with the outer calls to suc and substitute
--- a = l2, b = r2 and c = l1 + r1). This leaves us with a proof
--- of lemma A:
+-- Again we use cong to deal with the outer calls to suc and
+-- substitute a = l2, b = r2 and c = l1 + r1). This leaves us with a
+-- proof of lemma A:
 --
 --   a + (b + suc c) ≡ c + suc (a + b)
 --
@@ -275,8 +278,8 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 --              (trans (cong suc (+comm (l2 + r2) (l1 + r1)))
 --                     (+suc (l1 + r1) (l2 + r2))))
 --
--- We see a lot of properties combined using transitivity. In general, if we
--- have to prove:
+-- We see a lot of properties combined using transitivity. In general,
+-- if we have to prove:
 --
 --   a ≡ e
 --
@@ -298,8 +301,8 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 --  d ≡[ proof 4 ]
 --  e ∎
 --
--- Where proof 1 proves a ≡ b, proof 2 proves b ≡ c and so on. In our particular
--- case this will be:
+-- Where proof 1 proves a ≡ b, proof 2 proves b ≡ c and so on. In our
+-- particular case this will be:
 --
 --  suc  (l2 + (r2 + suc (l1 + r1))) ≡[ cong suc ]
 -- [suc]  l2 + (r2 + suc (l1 + r1))  ≡[+assoc l2 r2 (suc (l1 + r1))]
@@ -308,8 +311,9 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 -- [suc] suc ((l1 + r1) + (l2 + r2)) ≡[+suc (l1 + r1) (l2 + r2) ]
 -- [suc] (l1 + r1) + suc (l2 + r2) ∎
 --
--- We use [suc] to denote that everything happens under a call to suc (thanks to
--- using congruence). Compare this notation with code of proof-2i.
+-- We use [suc] to denote that everything happens under a call to suc
+-- (thanks to using congruence). Compare this notation with code of
+-- proof-2i.
 
 
 -- Note [Notation in merge]
@@ -322,49 +326,50 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 merge : {l r : Rank} → Heap l → Heap r → Heap (l + r)
 merge empty h2 = h2 -- See [merge, proof 0a]
 merge {suc l} {zero} h1 empty
-      = subst Heap (sym (+0 (suc l))) h1 -- See [merge, proof 0b]
+  = subst Heap (sym (+0 (suc l))) h1 -- See [merge, proof 0b]
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-      with p1 < p2
+  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+  with p1 < p2
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-      | true
-      = subst Heap
-              (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
-              (makeT p1 l1 (merge r1 (node p2 l2≥r2 l2 r2)))
+  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+  | true
+  = subst Heap
+          (proof-1 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 1]
+          (makeT p1 l1 (merge r1 (node p2 l2≥r2 l2 r2)))
 merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-      (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-      (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-      | false
-      = subst Heap
-              (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
-              (makeT p2 l2 (merge r2 (node p1 l1≥r1 l1 r1)))
+  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
+  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
+  | false
+  = subst Heap
+          (proof-2 l1-rank r1-rank l2-rank r2-rank) -- See [merge, proof 2]
+          (makeT p2 l2 (merge r2 (node p1 l1≥r1 l1 r1)))
 
--- We require that inserting an element into the heap increases its size by
--- one. As previously we define insert as merge and a singleton heap. Size of
--- singleton heap is (suc zero), while already existing heap has size
--- n. According to definition of merge the resulting heap will therefore have
--- size:
+-- We require that inserting an element into the heap increases its
+-- size by one. As previously we define insert as merge and a
+-- singleton heap. Size of singleton heap is (suc zero), while already
+-- existing heap has size n. According to definition of merge the
+-- resulting heap will therefore have size:
 --
 --   (suc zero) + n
 --
--- by definition of +this can be normalized to:
+-- by definition of + this can be normalized to:
 --
---  suc (zero + n)
+--   suc (zero + n)
 --
 -- and finally to
 --
---  suc n
+--   suc n
 --
--- Which is size we require in the type signature. This means we don't need any
--- additional proof because expected result follows from definitions.
+-- Which is size we require in the type signature. This means we don't
+-- need any additional proof because expected result follows from
+-- definitions.
 insert : {n : Rank} → Priority → Heap n → Heap (suc n)
 insert p h = merge (singleton p) h
 
--- By indexing heap with its size we can finally have means to ensure that heap
--- passed to findMin or deleteMin is not empty.
+-- By indexing heap with its size we can finally have means to ensure
+-- that heap passed to findMin or deleteMin is not empty.
 findMin : {n : Rank} → Heap (suc n) → Priority
 findMin (node p _ _ _) = p
 

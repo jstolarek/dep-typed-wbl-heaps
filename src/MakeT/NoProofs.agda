@@ -117,7 +117,8 @@ makeT p l r | false = node p (suc (rank l + rank r)) r l
 merge : {i j : Size} → Heap {i} → Heap {j} → Heap
 merge empty h2 = h2
 merge h1 empty = h1
-merge (node p1 w1 l1 r1) (node p2 w2 l2 r2) with p1 < p2
+merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
+  with p1 < p2
 merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
   | true  = makeT p1 l1 (merge r1 (node p2 w2 l2 r2))
 merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
