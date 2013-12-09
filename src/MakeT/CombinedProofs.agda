@@ -5,7 +5,7 @@
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Weight biased leftist tree that proves both priority and rank    --
--- invariants.
+-- invariants.                                                      --
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
