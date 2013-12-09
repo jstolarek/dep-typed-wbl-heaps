@@ -9,12 +9,14 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module NoMakeT.CombinedProofs where
+module SinglePassMerge.CombinedProofs where
 
 open import Basics
-open import MakeT.RankProof   using    ( makeT-lemma )
-                              renaming ( proof-1 to proof-1a; proof-2 to proof-2a )
-open import NoMakeT.RankProof using    ( proof-1b; proof-2b )
+open import TwoPassMerge.RankProof
+            using    ( makeT-lemma )
+            renaming ( proof-1 to proof-1a; proof-2 to proof-2a )
+open import SinglePassMerge.RankProof
+            using    ( proof-1b; proof-2b )
 open import Sized
 
 data Heap : {i : Size} → Priority → Rank → Set where
@@ -24,9 +26,10 @@ data Heap : {i : Size} → Priority → Rank → Set where
 
 -- Here we combined previously conducted proofs of rank and priority
 -- invariants in the same way we did it for two-pass merging algorithm
--- in MakeT.CombinedProofs. The most important thing here is that we
--- use order function both when comparing priorities and ranks of new
--- subtrees. This gives us evidence that required invariants hold.
+-- in TwoPassMerge.CombinedProofs. The most important thing here is
+-- that we use order function both when comparing priorities and ranks
+-- of new subtrees. This gives us evidence that required invariants
+-- hold.
 merge : {i j : Size} {b : Priority} {l r : Rank} → Heap {i} b l → Heap {j} b r
       → Heap {∞} b (l + r)
 merge empty h2 = h2

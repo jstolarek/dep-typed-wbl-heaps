@@ -19,7 +19,7 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module NoMakeT.NoProofs where
+module SinglePassMerge.NoProofs where
 
 open import Basics.Nat
 open import Basics hiding (_≥_)

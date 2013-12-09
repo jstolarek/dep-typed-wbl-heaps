@@ -9,7 +9,7 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module NoMakeT.PriorityProof where
+module SinglePassMerge.PriorityProof where
 
 open import Basics.Nat renaming (_≥_ to _≥ℕ_)
 open import Basics
@@ -25,8 +25,8 @@ rank empty            = zero
 rank (node _ r _ _ _) = r
 
 -- This implementation is derived in the same way as merge in
--- NoMakeT.NoProofs: depending on the size of new children we swap
--- parameters passed to node. Nothing really interesting.
+-- SinglePassMerge.NoProofs: depending on the size of new children we
+-- swap parameters passed to node. Nothing really interesting.
 merge : {i j : Size} {p : Nat} → Heap {i} p → Heap {j} p → Heap p
 merge empty h2 = h2
 merge h1 empty = h1

@@ -9,7 +9,7 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module MakeT.NoProofs where
+module TwoPassMerge.NoProofs where
 
 open import Basics.Nat
 open import Basics hiding (_≥_)

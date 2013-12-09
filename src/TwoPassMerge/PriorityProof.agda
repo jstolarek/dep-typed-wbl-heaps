@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module MakeT.PriorityProof where
+module TwoPassMerge.PriorityProof where
 
 open import Basics.Nat renaming (_≥_ to _≥ℕ_)
 open import Basics
@@ -76,7 +76,7 @@ heap-broken = node {!!} (suc one) ge0 empty (node zero one ge0 empty empty)
 
 -- Here is a correct heap. It stores one at the leaf and 0 at the
 -- root. It still violates the rank invariant - we deal with that in
--- MakeT.RankProof.
+-- TwoPassMerge.RankProof.
 heap-correct : Heap zero
 heap-correct = node zero (suc one) ge0 empty (node one one ge0 empty empty)
 

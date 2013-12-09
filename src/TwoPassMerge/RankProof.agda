@@ -9,7 +9,7 @@
 -- subtree.                                                         --
 ----------------------------------------------------------------------
 
-module MakeT.RankProof where
+module TwoPassMerge.RankProof where
 
 open import Basics
 

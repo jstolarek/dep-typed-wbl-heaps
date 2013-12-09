@@ -8,12 +8,13 @@
 -- a single-pass merging algorithm.                                 --
 ----------------------------------------------------------------------
 
-module NoMakeT.RankProof where
+module SinglePassMerge.RankProof where
 
 open import Basics
 -- We import rank proofs conducted earlier - they will be re-used.
-open import MakeT.RankProof using    ( makeT-lemma )
-                            renaming ( proof-1 to proof-1a; proof-2 to proof-2a )
+open import TwoPassMerge.RankProof
+            using    ( makeT-lemma )
+            renaming ( proof-1 to proof-1a; proof-2 to proof-2a )
 
 data Heap : Nat → Set where
   empty : Heap zero
@@ -22,7 +23,7 @@ data Heap : Nat → Set where
 -- Note [Privoving rank invariant in single-pass merge]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
--- Recall that in MakeT.RankProof we need to prove that:
+-- Recall that in TwoPassMerge.RankProof we need to prove that:
 --
 --  1) makeT constructs node of correct size. There were two cases:
 --

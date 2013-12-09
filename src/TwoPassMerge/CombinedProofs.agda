@@ -9,11 +9,11 @@
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
-module MakeT.CombinedProofs where
+module TwoPassMerge.CombinedProofs where
 
 open import Basics
 open import Sized
-open import MakeT.RankProof using ( makeT-lemma; proof-1; proof-2 )
+open import TwoPassMerge.RankProof using ( makeT-lemma; proof-1; proof-2 )
 
 -- Now that we have separate proofs of priority and rank invariants we
 -- can combine them into one proof. We index Heap with two indices:
@@ -55,7 +55,7 @@ makeT {b} {l-rank} {r-rank} p p≥n l r | le r≥l
 --     given to makeT which uses it to construct a new node.
 --
 --  2) it proves size invariant of merge by reusing proofs from
---     MakeT.RankProof
+--     TwoPassMerge.RankProof
 --
 --  3) it delegates the proof of rank invariant to makeT
 merge : {i j : Size} {b : Priority} {l r : Rank} → Heap {i} b l → Heap {j} b r
@@ -96,7 +96,7 @@ findMin (node p _ _ _ _) = p
 -- liftBound. We need to redefine ≥trans because Agda won't let us
 -- import it from a module that has unfinished implementation (recall
 -- that we left definitions of findMin and deleteMin incomplete in
--- MakeT.PriorityProof).
+-- TwoPassMerge.PriorityProof).
 ≥trans : {a b c : Nat} → a ≥ b → b ≥ c → a ≥ c
 ≥trans a≥b        ge0      = ge0
 ≥trans (geS a≥b) (geS b≥c) = geS (≥trans a≥b b≥c)
@@ -106,7 +106,7 @@ liftBound b≥n empty                = empty
 liftBound b≥n (node p p≥b l≥r l r) = node p (≥trans p≥b b≥n) l≥r l r
 
 -- With the new definition of liftBound we can now define deleteMin.
--- Implementation is identical to the one in MakeT.RankProof - we only
--- had to update type signature.
+-- Implementation is identical to the one in TwoPassMerge.RankProof -
+-- we only had to update type signature.
 deleteMin : {b : Priority} {r : Rank} → Heap b (suc r) → Heap b r
 deleteMin (node _ p≥b _ l r) = merge (liftBound p≥b l) (liftBound p≥b r)
