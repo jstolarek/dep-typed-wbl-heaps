@@ -5,7 +5,7 @@
 -- Repo address: https://github.com/jstolarek/dep-typed-wbl-heaps   --
 --                                                                  --
 -- Basic implementation of weight-biased leftist heap. No proofs    --
--- and no dependent types.                                          --
+-- and no dependent types. Uses a two-pass merging algorithm.       --
 ----------------------------------------------------------------------
 
 {-# OPTIONS --sized-types #-}
@@ -24,7 +24,8 @@ open import Sized
 -- only store Priority (a Natural number). This will not affect in any
 -- way the proofs we are conducting.
 
--- We begin with a simple implementation that uses no dependent-- types. Note the we explicitly store rank in node constructor (rank
+-- We begin with a simple implementation that uses no dependent
+-- types. Note the we explicitly store rank in node constructor (rank
 -- is defined as number of elements in a tree). This is not strictly
 -- necessary. Theoretically this information is redundant - we could
 -- just compute the size of a tree whenever we need it. The reason I
@@ -51,8 +52,8 @@ rank (node _ r _ _) = r
 singleton : Priority → Heap
 singleton p = node p one empty empty
 
--- Note [Merging algorithm]
--- ~~~~~~~~~~~~~~~~~~~~~~~~
+-- Note [Two-pass merging algorithm]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
 -- We use a two-pass merging algorithm. One pass, implemented by
 -- merge, performs merging in a top-down manner. Second one,
@@ -110,8 +111,9 @@ makeT p l r | true  = node p (suc (rank l + rank r)) l r
 makeT p l r | false = node p (suc (rank l + rank r)) r l
 
 -- merge combines two heaps into one. There are two base cases and two
--- recursive cases - see [Merging algorithm]. Recursive cases call
--- makeT to ensure that rank invariant is maintained after merging.
+-- recursive cases - see [Two-pass Merging algorithm]. Recursive cases
+-- call makeT to ensure that rank invariant is maintained after
+-- merging.
 merge : {i j : Size} → Heap {i} → Heap {j} → Heap
 merge empty h2 = h2
 merge h1 empty = h1

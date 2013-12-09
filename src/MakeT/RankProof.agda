@@ -49,7 +49,7 @@ singleton p = node p ge0 empty empty
 -- We need to prove that the size of merged heap is equal to the sum of sizes of
 -- heaps being merged. Recall that our merging algorithm is two pass: we use
 -- merge to actually do the merging and makeT to restore the rank invariant if
--- necessary (see [Merging algorithm]). This means our proof will be
+-- necessary (see [Two-pass merging algorithm]). This means our proof will be
 -- two-stage. We need to prove that:
 --
 --  1) makeT creates a node of required size, even if it swaps left
@@ -259,8 +259,13 @@ proof-2 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
                               ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 
--- Let's rewrite that proof in a different fassion to see closely what is
--- happening at each step. Inlining lemmas A and B into proof-2 gives:
+-- Note [Constructing equality proofs using transitivity]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- Now that constructed two specific proofs we can focus on a more
+-- general technique used in both cases. Let's rewrite proof-3 in a
+-- different fassion to see closely what is happening at each
+-- step. Inlining lemmas A and B into proof-2 gives:
 --
 --   proof-2i : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
 --                                  ≡ suc ((l1 + r1) + suc (l2 + r2))
@@ -270,7 +275,7 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 --              (trans (cong suc (+comm (l2 + r2) (l1 + r1)))
 --                     (+suc (l1 + r1) (l2 + r2))))
 --
--- We have a lot of properties combined using transitivity. In general, if we
+-- We see a lot of properties combined using transitivity. In general, if we
 -- have to prove:
 --
 --   a ≡ e
@@ -283,10 +288,9 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 --
 --   trans (a ≡ b) (trans (b ≡ c) (trans (c ≡ d) (d ≡ e)))
 --
--- We used this pattern here and we will be using it in the proofs to
--- come. While simple to use, combining proofs with transitivity can be not so
--- obvious at first. Let's rewrite the proof we have conducted using this
--- notation:
+-- While simple to use, combining proofs with transitivity can be not
+-- so obvious at first. Let's rewrite the proof we have conducted
+-- using following notation:
 --
 --  a ≡[ proof 1 ]
 --  b ≡[ proof 2 ]
