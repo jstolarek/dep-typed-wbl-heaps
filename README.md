@@ -13,12 +13,12 @@ Code is located in `src/` directory containing three subdirectories:
     for equational reasoning and proofs of elementary properties (like
     associativity and commutatibity of addition).
 
-  * MakeT - implementation of weight biased leftist heaps based on a
-    two-pass merging algorithm. Merging uses helper function `makeT`,
-    hence the name of a directory.
+  * TwoPassMerge - implementation of weight biased leftist heaps based
+    on a two-pass merging algorithm. Merging uses helper function
+    `makeT`.
 
-  * NoMakeT - implementation based on a single-pass merging obtained
-    by inlining all calls to `makeT`.
+  * SinglePassMerge - implementation based on a single-pass merging
+    obtained by inlining all calls to `makeT`.
 
 ## License
 
