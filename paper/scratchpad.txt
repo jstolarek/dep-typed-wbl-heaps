@@ -221,23 +221,6 @@ APPENDIX:
 
  Discussion of termination checker?
 
-
-REFERENCES:
-
-Okasaki
-
-"Agda - Equality" by Andreas Abel.
-
-"Why dependent types matter"
-
-Cite "SEMI-CONTINUOUS SIZED TYPES AND TERMINATION" by Andreas Abel
-
-Weight Biased Leftist Trees and Modified Skip Lists
-
-GHC paper (from AoS I think)
-
-Idris paper (from JFP?)
-
 CODE TODOs:
 
 - rethink usage of sized types. Should I use them everywhere
