@@ -18,6 +18,8 @@ record Heap (H : Set → Set) : Set1 where
 this paper builds on ideas presented in "Why dependent types matter" and
 takes them further by proving WBL Heap
 
+What was my motivation?
+
 Aim is to pick up where other tutorials have left you
 
 1.2 - contributions
@@ -72,8 +74,6 @@ NoProofNoMakeT
 PriorityProofNoMakeT
 RankProofNoMakeT
 CombinedNoMakeT
-
-Cite "SEMI-CONTINUOUS SIZED TYPES AND TERMINATION" by Andreas Abel
 
 When we inline definition of makeT in rank proof we need to supply four
 proofs instead of 4. Previously there were 2 proofs of makeT and 2 proofs
