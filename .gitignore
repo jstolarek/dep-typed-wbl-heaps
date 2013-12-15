@@ -1,9 +1,7 @@
-# Haskell
-*.o
-*.hi
-
 # Agda
 *.agdai
 
-# Idris
-*.ibc
+# paper
+paper/dep-typed-wbl-heaps.aux
+paper/dep-typed-wbl-heaps.log
+paper/dep-typed-wbl-heaps.pdf
