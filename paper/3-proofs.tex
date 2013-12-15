@@ -1,1 +1,21 @@
-\section{...}
+\section{... (two-pass merge)}
+
+%Before diving into implementetion let's take a quick look at our assumptions. Firstly, I assume that we have definitions of Nat and +. We define priority and rank as nats.
+
+% Maybe explain sized types here? Sized types are used to guide the termination checker, they are not always required, sometimes termination checker can do a good job without them. We encounter some agda problems and sized types sometimes don't work even though they should.
+
+\subsection{No proofs}
+
+We begin with a simple implementation without any proofs of its correctness. Here is how we define Heap in Agda:
+
+\begin{code}
+data Heap : Set where
+  empty : Heap
+  node  : Priority → Rank → Heap → Heap → Heap
+\end{code}
+
+According to our definition a heap is either empty or it is a node with Priority, Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store it in the constructor is that it will be instructive to show in section \ref{sec:rank-property} how this information is converted into inductive type familly index.
+
+
+
+\subsection{rank property, two-pass merge}\label{sec:rank-property}
