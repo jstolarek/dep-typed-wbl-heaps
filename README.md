@@ -1,9 +1,10 @@
-Dependently typed weight biased leftist heaps
-=============================================
+Verifying weight biased leftist heaps using dependent types
+===========================================================
 
-Draft version of paper "Dependently typed weight biased leftist heaps" +
-companion code. This paper will be submitted to 26th International
-Conference on Computer Aided Verification (CAV’14), Vienna, Austria.
+Draft version of paper "Verifying weight biased leftist heaps using
+dependent types" + companion code. This paper will be submitted to
+26th International Conference on Computer Aided Verification (CAV’14),
+Vienna, Austria.
 
 ## Source organization
 
