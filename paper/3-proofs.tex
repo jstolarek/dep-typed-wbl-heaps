@@ -4,9 +4,21 @@
 
 % Maybe explain sized types here? Sized types are used to guide the termination checker, they are not always required, sometimes termination checker can do a good job without them. We encounter some agda problems and sized types sometimes don't work even though they should.
 
+We use following notation:
+
+\begin{itemize}
+ \item h1, $h2$ - first heap, second heap
+ \item p1, p2 - priority of root element in first/second heap
+ \item l1, r1 - left and right subtrees of first  heap
+ \item l2, r2 - left and right subtrees of second heap
+ \item l1-r, r1-r - rank of left and right subtrees of first  heap
+ \item l2-r, r2-r - rank of left and right subtrees of second heap
+\end{itemize}
+
+
 \subsection{No proofs}
 
-We begin with a simple implementation without any proofs of its correctness. Here is how we define Heap in Agda:
+We begin with a simple implementation that has no proof of correctness. Let us define Heap datatype:
 
 \begin{code}
 data Heap : Set where
@@ -14,8 +26,19 @@ data Heap : Set where
   node  : Priority → Rank → Heap → Heap → Heap
 \end{code}
 
-According to our definition a heap is either empty or it is a node with Priority, Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store it in the constructor is that it will be instructive to show in section \ref{sec:rank-property} how this information is converted into inductive type familly index.
+According to this definition a heap is either empty or it is a node with Priority, Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store Rank in the constructor is that it will be instructive to show in section \ref{sec:rank-property} how it is converted into inductive type familly index.
 
+\subsubsection{merge}
 
+We define heap merge as a recursive algorithm with four different cases.
+
+\begin{enumerate}
+ \item (base case) h1 is empty - return h2
+ \item (base case) h2 is empty - return h1
+ \item (inductive case) $p1 < p2$
+ \item (inductive case) p2 ... p1
+\end{enumerate}
+
+We will implement merging algorithm using a helper function makeT, as proposed by Okasaki \cite{Oka99}.
 
 \subsection{rank property, two-pass merge}\label{sec:rank-property}
