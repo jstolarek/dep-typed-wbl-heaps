@@ -3,7 +3,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif
 kileprversion=2
 kileversion=2.0
-lastDocument=2-wbl-heaps.tex
+lastDocument=3-proofs.tex
 masterDocument=
 name=dep-typed-wbl-heaps
 pkg_extIsRegExp=false
@@ -26,16 +26,16 @@ order=-1
 
 [item:1-introduction.tex]
 archive=true
-column=115
+column=103
 encoding=UTF-8
 highlight=LaTeX
-line=2
-open=false
-order=-1
+line=5
+open=true
+order=3
 
 [item:2-wbl-heaps.tex]
 archive=true
-column=355
+column=387
 encoding=UTF-8
 highlight=LaTeX
 line=2
@@ -44,10 +44,10 @@ order=1
 
 [item:3-proofs.tex]
 archive=true
-column=30
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=38
+line=169
 open=true
 order=2
 
@@ -80,18 +80,18 @@ order=-1
 
 [item:dep-typed-wbl-heaps.tex]
 archive=true
-column=31
+column=27
 encoding=UTF-8
 highlight=LaTeX
-line=12
+line=25
 open=true
 order=0
 
 [item:references.bib]
 archive=true
-column=12
+column=25
 encoding=UTF-8
 highlight=BibTeX
-line=0
-open=false
-order=2
+line=55
+open=true
+order=4
