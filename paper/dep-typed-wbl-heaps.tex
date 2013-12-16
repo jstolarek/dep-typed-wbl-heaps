@@ -1,10 +1,36 @@
 \documentclass{llncs}
 
-\usepackage{ucs}
-\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
 
-\usepackage{verbatim}
-\newenvironment{code}{\verbatim}{\endverbatim}
+%\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc} 
+
+\usepackage{fancyvrb}
+\newenvironment{code}{\Verbatim[commandchars=\\\{\}]}{\endVerbatim}
+
+\RequirePackage{float}
+\newfloat{listing}{htbp}{ltg}
+\floatname{listing}{Listing}
+\newcommand{\Listing}[1]{Listing~\ref{#1}}
+
+\usepackage{color}
+\definecolor{light-gray}{gray}{0.7}
+\newcommand{\hilight}[1]{\colorbox{light-gray}{#1}}
+
+\def\findMin{\texttt{findMin} }
+\def\makeT{\texttt{makeT} }
+\def\merge{\texttt{merge} }
+\def\deleteMin{\texttt{deleteMin} }
+\def\Insert{\texttt{insert} }
+\def\Heap{\texttt{Heap} }
+\def\Priority{\texttt{Priority} }
+\def\Rank{\texttt{Rank} }
+\def\Nat{\texttt{Nat} }
+\def\Empty{\texttt{empty} }
+\def\node{\texttt{node} }
 
 \begin{document}
 \title{Verifying weight biased leftist heaps with dependent types}

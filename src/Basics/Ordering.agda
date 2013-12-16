@@ -18,8 +18,8 @@ open import Basics.Nat hiding (_≥_)
 -- to zero and b) any two natural numbers are in ≥ relation if their
 -- predecessors are also in that relation.
 data _≥_ : Nat → Nat → Set where
-  ge0 : {y : Nat}                   → y     ≥ zero
-  geS : {x : Nat} {y : Nat} → x ≥ y → suc x ≥ suc y
+  ge0 : {  y : Nat}         → y     ≥ zero
+  geS : {x y : Nat} → x ≥ y → suc x ≥ suc y
 
 infixl 4 _≥_
 

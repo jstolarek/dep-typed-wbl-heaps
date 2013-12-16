@@ -77,7 +77,7 @@ singleton p = node p one empty empty
 --
 -- The other two form the inductive definition of merge:
 --
---    c) priority p1 is higher than p2 - p1 becomes the root, l1
+--    c) priority p1 is higher than p2 - p1 becomes new root, l1
 --       becomes its one child and result of merging r1 with h2
 --       becomes the other child:
 --
@@ -86,7 +86,7 @@ singleton p = node p one empty empty
 --             /    \
 --            l1  r1+h2 -- here "+" denotes merging
 --
---    d) priority p2 is higher than p2 - p2 becomes the root, l2
+--    d) priority p2 is higher than p2 - p2 becomes new root, l2
 --       becomes its one child and result of merging r2 with h1
 --       becomes the other child.
 --
@@ -118,12 +118,12 @@ makeT p l r | false = node p (suc (rank l + rank r)) r l
 merge : {i j : Size} → Heap {i} → Heap {j} → Heap
 merge empty h2 = h2
 merge h1 empty = h1
-merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
   with p1 < p2
-merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
-  | true  = makeT p1 l1 (merge r1 (node p2 w2 l2 r2))
-merge (node p1 w1 l1 r1) (node p2 w2 l2 r2)
-  | false = makeT p2 l2 (merge (node p1 w1 l1 r1) r2)
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
+  | true  = makeT p1 l1 (merge r1 (node p2 h2-r l2 r2))
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
+  | false = makeT p2 l2 (merge (node p1 h1-r l1 r1) r2)
 
 -- Inserting into a heap is performed by merging that heap with newly
 -- created singleton heap.
@@ -140,6 +140,15 @@ findMin : Heap → Priority
 findMin empty          = {!!}  -- does it make sense to assume default
                                -- priority for empty heap?
 findMin (node p _ _ _) = p
+
+data Maybe (A : Set) : Set where
+  nothing : Maybe A
+  just    : A → Maybe A
+
+findMinM : Heap → Maybe Priority
+findMinM empty          = nothing
+findMinM (node p _ _ _) = just p
+
 
 -- deleteMin removes the element with the highest priority by merging
 -- subtrees of a root element. Again the case of empty heap is

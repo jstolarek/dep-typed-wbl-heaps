@@ -7,18 +7,18 @@
 We use following notation:
 
 \begin{itemize}
- \item h1, $h2$ - first heap, second heap
- \item p1, p2 - priority of root element in first/second heap
- \item l1, r1 - left and right subtrees of first  heap
- \item l2, r2 - left and right subtrees of second heap
- \item l1-r, r1-r - rank of left and right subtrees of first  heap
- \item l2-r, r2-r - rank of left and right subtrees of second heap
+ \item $h1$, $h2$ - first heap, second heap
+ \item $p1$, $p2$ - priority of root element in first/second heap
+ \item $l1$, $r1$ - left and right subtrees of first  heap
+ \item $l2$, $r2$ - left and right subtrees of second heap
+ \item $l1-r$, $r1-r$ - rank of left and right subtrees of first  heap
+ \item $l2-r$, $r2-r$ - rank of left and right subtrees of second heap
 \end{itemize}
 
 
 \subsection{No proofs}
 
-We begin with a simple implementation that has no proof of correctness. Let us define Heap datatype:
+We begin with a simple implementation that has no proof of correctness. Let us define \Heap datatype:
 
 \begin{code}
 data Heap : Set where
@@ -26,19 +26,155 @@ data Heap : Set where
   node  : Priority → Rank → Heap → Heap → Heap
 \end{code}
 
-According to this definition a heap is either empty or it is a node with Priority, Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store Rank in the constructor is that it will be instructive to show in section \ref{sec:rank-property} how it is converted into inductive type familly index.
+\begin{listing}[b!]
+\begin{code}
+makeT : Priority → Heap → Heap → Heap
+makeT p l r with rank l ≥ rank r
+makeT p l r | true  = node p (suc (rank l + rank r)) l r
+makeT p l r | false = node p (suc (rank l + rank r)) r l
+
+merge : Heap → Heap → Heap
+merge empty h2 = h2
+merge h1 empty = h1
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
+  with p1 < p2
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
+  | true  = makeT p1 l1 (merge r1 (node p2 h2-r l2 r2))
+merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
+  | false = makeT p2 l2 (merge (node p1 h1-r l1 r1) r2)
+\end{code}
+\caption{Implementation of makeT and merge}\label{lst:makeT-merge}
+\end{listing}
+
+According to this definition a heap is either empty or it is a node with \Priority, \Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store \Rank in the constructor is that it will be instructive to show in Section \ref{sec:rank-property} how it is converted into inductive type family index.
 
 \subsubsection{merge}
 
-We define heap merge as a recursive algorithm with four different cases.
+Heaps are merged using a recursive algorithm. We need to consider four cases:
 
 \begin{enumerate}
- \item (base case) h1 is empty - return h2
- \item (base case) h2 is empty - return h1
- \item (inductive case) $p1 < p2$
- \item (inductive case) p2 ... p1
+ \item (base case) $h1$ is empty - return $h2$.
+ \item (base case) $h2$ is empty - return $h1$.
+ \item (inductive case) priority $p1$ is higher than $p2$ -- $p1$ becomes new root, $l1$ becomes its one child and result of merging $r1$ with $h2$ becomes the other child.
+ \item (inductive case) priority $p2$ is higher than $p1$ -- $p2$ becomes new root, $l2$ becomes its one child and result of merging $r2$ with $h1$ becomes the other child.
 \end{enumerate}
 
-We will implement merging algorithm using a helper function makeT, as proposed by Okasaki \cite{Oka99}.
+There is no guarantee that rank of $r1$ merged with $h2$ (or $r2$ merged with $h1$) will be smaller or equal to rank of $l1$ (or $l2$). To ensure that rank invariant is maintained we use a helper function \makeT, as proposed by Okasaki \cite{Oka99}. We pass new children to \makeT, which creates a new node and swaps the children if necessary (see \Listing{lst:makeT-merge}). As Okasaki points out this algorithm can be view as having two passes: a top-down pass that performs merging and a bottom-up pass that restores the rank invariant.
 
-\subsection{rank property, two-pass merge}\label{sec:rank-property}
+\subsubsection{insert}
+
+We can now implement merge as described in Section~\ref{sec:wblh}:
+
+\begin{code}
+singleton : Priority → Heap
+singleton p = node p one empty empty
+
+insert : Priority → Heap → Heap
+insert p h = merge (singleton p) h
+\end{code}
+
+\subsubsection{findMin}
+
+To retrieve element with the highest priority we return value stored in the root of a heap:
+
+\begin{code}
+findMin : Heap → Priority
+findMin empty          = \hilight{?}
+findMin (node p _ _ _) = p
+\end{code}
+
+Here we encounter first serious problem: what should \findMin return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it unreasinable to assume it as default. We could return $\inf$, which represents lower priority than any natural number. But this would require us to extend definition of \Nat with $\inf$ which in turn would force us to modify all functions that pattern match on values of \Nat. Let's face it -- \findMin function is not defined for an empty heap but types don't reflect that! To solve our problem we need to be more specific about our types. One solution would be to use \texttt{Maybe} datatype:
+
+\begin{code}
+data Maybe (A : Set) : Set where
+  nothing : Maybe A
+  just    : A → Maybe A
+
+findMinM : Heap → Maybe Priority
+findMinM empty          = nothing
+findMinM (node p _ _ _) = just p
+\end{code}
+
+Returning \texttt{nothing} is like saying ``no output exists for the given input data''. This allows us to express the fact that \findMin is not defined for some input values. But we can do better by ensuring that \findMin is never called for an empty heap.
+
+\subsubsection{deleteMin}
+
+Definition of \deleteMin is based on description in Section~\ref{sec:wblh}. We face the same problem again:
+
+\begin{code}
+deleteMin : Heap → Heap
+deleteMin empty          = \hilight{?}
+deleteMin (node _ _ l r) = merge l r
+\end{code}
+
+\subsection{Prooving rank property}\label{sec:rank-property}
+
+We will now prove that our implementation maintains the rank property. Our first step is to express \Rank at the type level as an index of \Heap datatype. Since rank of a heap is now part of its type we can ensure that rank of left subtree is not smaller than rank of the right subtree. We do this be requiring that \node constructor is given a proof that rank invariant holds. To express such proofs we define ≥ datatype:
+
+\begin{code}
+data _≥_ : Nat → Nat → Set where
+  ge0 : \{  y : Nat\}         → y     ≥ zero
+  geS : \{x y : Nat\} → x ≥ y → suc x ≥ suc y
+\end{code}
+\noindent
+Values of this type are indexed by two natural numbers. They prove that: a) any natural number is greater than or equal to \texttt{0} (\texttt{ge0} constructor); b) if two numbers are in greater-equal relation then their successors are also in that relation (\texttt{geS} constructor). This type represents concept of data as evidence~\cite{AltMcBMcK05}. We use \texttt{order} function to compare two natural numbers and \texttt{Order} datatype to express the result. Implementation is located in \texttt{Basics.Ordering} module of the companion code.
+
+Having defined ≥ we can now give new definition of \Heap:
+
+\begin{code}
+data Heap : Rank → Set where
+  empty : Heap zero
+  node  : \{l r : Rank\} → Priority → l ≥ r →
+          Heap l → Heap r → Heap (suc (l + r))
+\end{code}
+
+\noindent
+Empty heap contains no elements and so \Empty returns \Heap indexed with \texttt{0}. Non-empty node stores an element and two children of size \texttt{l} and \texttt{r}. Therefore the size of the resulting heap is \texttt{1} + \texttt{l} + \texttt{r}. We must also supply a value of type \texttt{l ≥ r}, ie. we must provide a proof that rank invariant holds.
+
+Proving the rank invariant itself is surprisingly simple. We can easily obtain evidence that rank of left subtree is not smaller than rank of right subtree by using \texttt{order} function. But there is a different difficulty here. Since we index heaps by their sizes we now require that \makeT and \merge construct trees of correct size. Prooving this requires some substantial work on our side. We need to prove that the size of merged heap is equal to the sum of sizes of heaps being merged. Recall that our merging algorithm is two pass: we use \merge to actually do the merging and \makeT to
+restore the rank invariant if necessary. This means our proof will be two-stage. We need to prove that: a) \makeT creates a node of required size; b) recursive calls to \merge produce heaps of required size.
+
+\subsubsection{Proving makeT}
+
+\makeT takes subtrees of rank \texttt{l} and \texttt{r} and produces a new tree with rank \texttt{1 + l + r} (we express this as \texttt{suc(l + r)}). We must prove that each case of \makeT returns tree of correct size:
+
+\begin{enumerate}
+ \item If rank \texttt{l} is greater than or equal to rank \textbf{r} then no extra proof is necessary as everything follows from the definition of +.
+ \item If rank \texttt{r} is greater than or equal to rank \textbf{l} then we must swap left and right subtrees. This requires us to prove that:
+
+\begin{equation*}
+suc (r + l) ≡ suc (l + r)
+\end{equation*}
+
+That proof is done using congruence on suc function and commutativity of addition. We will define that proof as \texttt{makeT-lemma} as we will be using in subsequent proofs.
+\end{enumerate}
+
+Below is new code of \makeT:
+
+\begin{code}
+makeT-lemma : (a b : Nat) → suc (a + b) ≡ suc (b + a)
+makeT-lemma a b = cong suc (+comm a b)
+
+makeT : \{l r : Rank\} → Priority → Heap l → Heap r → Heap (suc (l + r))
+makeT \{l-rank\} \{r-rank\} p l r with order l-rank r-rank
+makeT \{l-rank\} \{r-rank\} p l r | ge l≥r
+  = node p l≥r l r
+makeT \{l-rank\} \{r-rank\} p l r | le r≥l
+  = subst Heap (makeT-lemma r-rank l-rank) (node p r≥l r l)
+\end{code}
+
+\subsubsection{Proving merge}
+
+We need to prove that all four cases of merge produce heap of required size. To make our notation more compact in this section we will use $h1$, $h2$ to denote ranks of heaps being merged and $l1$, $r1$, $l2$ and $r2$ to denote ranks of their children. $p1$ and $p2$ still denote priorities stored in the roots of merged heaps.
+
+
+
+
+
+
+
+
+
+
+
+ 
