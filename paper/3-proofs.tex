@@ -238,7 +238,13 @@ In recursive case we know that neither $h1$ nor $h2$ is empty, ie. their sizes a
 \noindent
 This will be our goal in both proofs of recursive cases.
 
-In the first inductive we construct the result by calling $makeT p1 l1 (merge r1 (node p2 h2-r l2 r2))$, as shown in the \Listing{lst:makeT-merge}\footnote{In the verified code shown in \Listing{lst:rank-proof-merge-two-pass} the \texttt{node} constructor takes slightly different parameters. This is because we changed the definition of \Heap datatype. This doesn't affect our reasoning here.}. Call to \texttt{node} with \texttt{l2} and \texttt{r2} as parameters produces node of rank $suc(l2 + r2)$\footnote{Remeber that \texttt{l2} denotes left child of the second tree in the code, while $l2$ denotes rank of that subtree.}. Passing it to \texttt{merge} together with \texttt{r1} gives a tree of rank $r1 + suc(l2 + r2)$ (by the type signature of \texttt{merge}). Passing result of \texttt{merge} to \texttt{makeT} produces tree of rank $suc (l1 + (r1 + suc (l2 + r2)))$ (by the type signature of \texttt{makeT}). We must therefore construct a proof that:
+In the first inductive we construct the result by calling
+
+\begin{code}
+makeT p1 l1 (merge r1 (node p2 h2-r l2 r2))
+\end{code}
+\noindent
+as shown in the \Listing{lst:makeT-merge}\footnote{In the verified code shown in \Listing{lst:rank-proof-merge-two-pass} the \texttt{node} constructor takes slightly different parameters. This is because we changed the definition of \Heap datatype. This doesn't affect our reasoning here.}. Call to \texttt{node} with \texttt{l2} and \texttt{r2} as parameters produces node of rank $suc(l2 + r2)$\footnote{Remeber that \texttt{l2} denotes left child of the second tree in the code, while $l2$ denotes rank of that subtree.}. Passing it to \texttt{merge} together with \texttt{r1} gives a tree of rank $r1 + suc(l2 + r2)$ (by the type signature of \texttt{merge}). Passing result of \texttt{merge} to \texttt{makeT} produces tree of rank $suc (l1 + (r1 + suc (l2 + r2)))$ (by the type signature of \texttt{makeT}). We must therefore construct a proof that:
 
 \begin{equation*}
 \suc (l1 + (r1 + \suc (l2 + r2))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
@@ -256,7 +262,7 @@ Substituting $a = l1$, $b = r1$ and $c = suc (l2 + r2)$ we have
 a + (b + c) ≡ (a + b) + c
 \end{equation*}
 \noindent
-Which is associativity of addition that we have already proved in \texttt{Basics.Reasoning}.
+This is associativity of addition, that we already proved in \texttt{Basics.Reasoning}.
 
 The proof of second inductive case is much more interesting. This time we have to prove that:
 

@@ -1,21 +1,17 @@
 \section{Introduction}
+% Purpose of this paper is to present formal verification of a known purely functional data structure (well known).
 
 \subsection{Companion code}
 
-This tutorial comes with companion code available at author's web page and GitHub \cite{js-github}. Code is written in Agda 2.3.3, which is a development version of the compiler as of Januray 2014. See Agda Wiki for instructions how to install development version of Agda. I assume that the reader is reading the companion code along with the paper. Due to space limitations I elide some proofs that are described in detail in the companion code.
+This tutorial comes with companion code available at my web page \cite{js-webhome}\footnote{``Living'' version of companion code is available at GitHub \cite{js-github}.}. Code is written in Agda 2.3.3, which is a development version of the compiler as of Januray 2014. See Agda Wiki \cite{agda-wiki} for instructions how to install development version of Agda. I assume that the reader is reading the companion code along with the paper. Due to space limitations I elide some proofs that are described in detail in the companion code.
 
 \subsection{Assumptions and conventions}
 
-I assume that reader has basic understanding of Agda and using dependent types to conduct proofs. In particular I assume that reader is familiar with \texttt{refl} and its basic properties: symmetry, congruence, transitivity and substitution. I also assume that reader understands proofs of basic properties of addition like associativity, commutativity or 0 as right identity ($a + 0 ≡ a$). The reader should also know the concept of ``data as evidence'' and be familiar with ideas presented in ``Why Dependent Types Matter'' \cite{AltMcBMcK05} as we will build upon them.
-
-A good introduction to Agda and proofs can be found in and  as well as some online resources .
-
-% http://www.cs.nott.ac.uk/~txa/g53cfr/
-%data as evidence
+I assume that reader has basic understanding of Agda and using dependent types to conduct proofs. In particular I assume that reader is familiar with definition of natural numbers (\texttt{Nat}s) and their addition (\texttt{+}) as well as proofs of basic properties of addition like associativity, commutativity or 0 as right identity ($a + 0 ≡ a$). Reader should also understand \texttt{refl} with its basic properties (symmetry, congruence, transitivity and substitution), know the concept of ``data as evidence'' and other ideas presented in ``Why Dependent Types Matter'' \cite{AltMcBMcK05} as we will build upon them.
 
 \subsection{Contributions}
 
-Contributions of this paper are:
+This paper contains following contributions:
 
 \begin{itemize}
  \item % explains how to build equality proofs using transitivity, allows this basic thing allows to understand more complex stuff (standard library).
@@ -23,13 +19,3 @@ Contributions of this paper are:
  \item % picking up were other tutorials left
  \item % demonstrating how to verify a well known functional data structure using techniques developed earlier
 \end{itemize}
-
-
-% Purpose of this paper is to present formal verification of a known purely functional data structure (well known).
-
-% assume faimiliarity with evidence as data and singleton types. - Why dep types matter
-% assumptions: definition of natual numbers, +, congruence, refl, symmetry, transitivity, substitution.
-
-% mention companion code
-
-% spacje za definicjami

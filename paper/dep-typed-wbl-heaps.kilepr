@@ -20,22 +20,22 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=3
-open=false
-order=-1
+line=1
+open=true
+order=4
 
 [item:1-introduction.tex]
 archive=true
-column=103
+column=306
 encoding=UTF-8
 highlight=LaTeX
-line=5
+line=4
 open=true
 order=3
 
 [item:2-wbl-heaps.tex]
 archive=true
-column=387
+column=266
 encoding=UTF-8
 highlight=LaTeX
 line=2
@@ -47,13 +47,13 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=169
+line=578
 open=true
 order=2
 
 [item:4-summary.tex]
 archive=true
-column=16
+column=0
 encoding=UTF-8
 highlight=LaTeX
 line=0
@@ -80,10 +80,10 @@ order=-1
 
 [item:dep-typed-wbl-heaps.tex]
 archive=true
-column=27
+column=21
 encoding=UTF-8
 highlight=LaTeX
-line=25
+line=3
 open=true
 order=0
 
@@ -93,5 +93,5 @@ column=25
 encoding=UTF-8
 highlight=BibTeX
 line=55
-open=true
+open=false
 order=4
