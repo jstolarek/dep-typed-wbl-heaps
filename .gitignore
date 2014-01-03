@@ -3,10 +3,11 @@
 
 # paper
 paper/dep-typed-wbl-heaps.aux
+paper/dep-typed-wbl-heaps.bbl
+paper/dep-typed-wbl-heaps.blg
 paper/dep-typed-wbl-heaps.log
 paper/dep-typed-wbl-heaps.pdf
+paper/dep-typed-wbl-heaps.tex.backup
 paper/1-introduction.tex.backup
 paper/2-wbl-heaps.tex.backup
 paper/3-proofs.tex.backup
-paper/dep-typed-wbl-heaps.bbl
-paper/dep-typed-wbl-heaps.blg
