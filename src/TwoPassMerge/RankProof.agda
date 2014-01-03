@@ -230,7 +230,7 @@ proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
 --   suc (l2 + (r2 + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
 --
 -- Again we use cong to deal with the outer calls to suc and
--- substitute a = l2, b = r2 and c = l1 + r1). This leaves us with a
+-- substitute a = l2, b = r2 and c = l1 + r1. This leaves us with a
 -- proof of lemma A:
 --
 --   a + (b + suc c) ≡ c + suc (a + b)
@@ -279,7 +279,7 @@ proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --
 -- Now that constructed two specific proofs we can focus on a more
--- general technique used in both cases. Let's rewrite proof-3 in a
+-- general technique used in both cases. Let's rewrite proof-2 in a
 -- different fassion to see closely what is happening at each
 -- step. Inlining lemmas A and B into proof-2 gives:
 --
