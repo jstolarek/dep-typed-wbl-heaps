@@ -17,7 +17,7 @@
 \floatname{listing}{Listing}
 \newcommand{\Listing}[1]{Listing~\ref{#1}}
 
-\usepackage{color}
+\usepackage{xcolor}
 \definecolor{light-gray}{gray}{0.7}
 \newcommand{\hilight}[1]{\colorbox{light-gray}{#1}}
 
@@ -32,6 +32,15 @@
 \def\Nat{\texttt{Nat} }
 \def\Empty{\texttt{empty} }
 \def\node{\texttt{node} }
+
+\DeclareMathOperator{\congr}{cong}
+\DeclareMathOperator{\trans}{trans}
+\DeclareMathOperator{\suc}{suc}
+\DeclareMathOperator{\zero}{zero}
+\DeclareMathOperator{\assoc}{+assoc}
+\DeclareMathOperator{\sym}{sym}
+\DeclareMathOperator{\Psuc}{+suc}
+\DeclareMathOperator{\comm}{+comm}
 
 \begin{document}
 \title{Verifying weight biased leftist heaps with dependent types}
@@ -48,6 +57,13 @@
 \input{2-wbl-heaps}
 \input{3-proofs}
 \input{4-summary}
+
+\section*{Acknowledgements}
+
+I thank Andreas Abel for his help with sized types.
+
 \input{5-references}
+
+
 
 \end{document}
