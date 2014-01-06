@@ -3,7 +3,7 @@
 
 \subsection{Companion code}
 
-This tutorial comes with companion code available at my web page \cite{js-webhome}. Code is written in Agda 2.3.3, which is a development version of the compiler as of January 2014. See Agda Wiki \cite{agda-wiki} for instructions how to install development version of Agda. I assume that the reader is reading the companion code along with the paper. Due to space limitations I elide some proofs that are described in detail in the companion code. ``Living'' version of companion code is available at GitHub \cite{js-github}. This version may have some updates after paper has been published.
+This tutorial comes with companion code available at my web page \cite{js-webhome}. Code is written in Agda 2.3.3, which is a development version of the compiler as of January 2014. See Agda Wiki \cite{agda-wiki} for instructions how to install development version of Agda. I assume that the reader is reading the companion code along with the paper. Due to space limitations I elide some proofs that are described in detail in the companion code. ``Living'' version of companion code is available at GitHub \cite{js-github}. This version may receive updates after the paper has been published.
 
 \subsection{Assumptions}
 
@@ -13,7 +13,7 @@ I assume that reader has basic understanding of Agda and using dependent types t
 
 In the rest of the paper I use \texttt{typewriter font} to denote a heap and \textit{italic type} to denote its rank. The description of merge algorithm will mention heaps \texttt{h1} and \texttt{h2} with ranks \textit{h1} and \textit{h2}, respectively, their left children (\texttt{l1} in \texttt{h1} and \texttt{l2} in \texttt{h2}) and right children (\texttt{r1} in \texttt{h1} and \texttt{r2} in \texttt{h2}). \texttt{p1} and \texttt{p2} are the priorities of root elements in \texttt{h1} and \texttt{h2}, respectively. I will use $\oplus$ to denote heap merging operation. So \texttt{h1}$\oplus$\texttt{h2} is a heap created by merging \texttt{h1} with \texttt{h2}, while \textit{h1}$\oplus$\textit{h2} is the rank of merged heap.
 
-In the text I will use numerals to represent \texttt{Nat}s, although in code I use encoding based on \texttt{zero} and \texttt{suc}. Thus 2 in the text corresponds to \texttt{suc (suc zero)} in the source code.
+In the text I will use numerals to represent \texttt{Nat}s, although in code I use encoding based on \texttt{zero} and \texttt{suc}. Thus 2 in the text corresponds to \texttt{suc (suc zero)} in the source code. I use \texttt{\hilight{\{ \}?}} in code listings to represent Agda holes.
 
 \subsection{Contributions}
 

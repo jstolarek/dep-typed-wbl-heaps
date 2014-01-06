@@ -8,32 +8,25 @@
 % typesetting URLs in references
 \usepackage{url}
 
-\usepackage{ucs}
-\usepackage[utf8x]{inputenc}
-\usepackage[T1]{fontenc} 
-\usepackage{lmodern}
+%\usepackage{ucs} % better support for UTF-8. I think this is actually redundant
+\usepackage[utf8x]{inputenc} % UTF-8 input encoding
+\usepackage[T1]{fontenc} % adds font shapes required in code environment
+%\usepackage{lmodern} % better latin font. Redundant, I think.
 
-\usepackage{fancyvrb}
-\newenvironment{code}{\Verbatim[commandchars=\\\{\}]}{\endVerbatim}
-
-\RequirePackage{float}
+% define new type of floating environment: listing. Also, define \Listing command
+% for easier referencing of listing environment.
+\usepackage{float}
 \newfloat{listing}{htbp}{ltg}
 \floatname{listing}{Listing}
 \newcommand{\Listing}[1]{Listing~\ref{#1}}
 
+% better verbatim environment, allows to use commands
+\usepackage{fancyvrb}
+\newenvironment{code}{\Verbatim[commandchars=\\\{\}]}{\endVerbatim}
+% used for highlighting question mark in code. Used to represent Agda holes.
 \usepackage{xcolor}
 \definecolor{light-gray}{gray}{0.7}
 \newcommand{\hilight}[1]{\colorbox{light-gray}{#1}}
-
-\def\merge{\texttt{merge} }
-\def\deleteMin{\texttt{deleteMin} }
-\def\Insert{\texttt{insert} }
-\def\Heap{\texttt{Heap} }
-\def\Priority{\texttt{Priority} }
-\def\Rank{\texttt{Rank} }
-\def\Nat{\texttt{Nat} }
-\def\Empty{\texttt{empty} }
-\def\node{\texttt{node} }
 
 % a bunch of definitions to better typeset code written in math mode
 \DeclareMathOperator{\congr}{cong}
