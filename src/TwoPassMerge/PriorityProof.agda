@@ -174,6 +174,16 @@ heap = insert (suc (suc zero))
       (insert zero
       (insert (suc (suc (suc zero))) (empty {n = zero}))))
 
+-- But what if we want to insert into a heap that is not indexed with
+-- 0? One solution is to be liberal and ``promote'' that heap so that
+-- after insertion it can store elements with any priorities:
+toZero : {b : Priority} → Heap b → Heap zero
+toZero empty               = empty
+toZero (node p rank _ l r) = node p rank ge0 l r
+
+insert0 : {b : Priority} → Priority → Heap b → Heap zero
+insert0 p h = merge (singleton p) (toZero h)
+
 -- But what if we actaully want to maintain bounds imposed on the heap
 -- by its index? To achieve that we need a new singleton function that
 -- constructs a singleton Heap with a bound equal to priority of a
