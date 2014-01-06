@@ -25,8 +25,6 @@
 \definecolor{light-gray}{gray}{0.7}
 \newcommand{\hilight}[1]{\colorbox{light-gray}{#1}}
 
-\def\findMin{\texttt{findMin} }
-\def\makeT{\texttt{makeT} }
 \def\merge{\texttt{merge} }
 \def\deleteMin{\texttt{deleteMin} }
 \def\Insert{\texttt{insert} }
@@ -37,6 +35,7 @@
 \def\Empty{\texttt{empty} }
 \def\node{\texttt{node} }
 
+% a bunch of definitions to better typeset code written in math mode
 \DeclareMathOperator{\congr}{cong}
 \DeclareMathOperator{\trans}{trans}
 \DeclareMathOperator{\suc}{suc}
@@ -47,10 +46,8 @@
 \DeclareMathOperator{\comm}{+comm}
 \DeclareMathOperator{\prof}{proof}
 
-\usepackage{lipsum}
-
 \begin{document}
-\title{Verifying weight biased leftist heaps with dependent types}
+\title{Verifying weight biased leftist heaps using dependent types}
 \author{Jan Stolarek}
 \institute{Institute of Information Technology\\Lodz University of Technology\\Poland\\
 \email{jan.stolarek@p.lodz.pl}}

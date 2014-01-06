@@ -265,6 +265,7 @@ heap' = insertB' (suc (suc zero)) {!!}
        (insertB' (suc zero) {!!}
        (insertB' zero {!!}
        (insertB' (suc (suc (suc zero))) {!!} (empty))))
+
 -- In third hole we are required to supply evidence that 0 ≥ 1 and
 -- that is not possible. The reason is that our insertB' function
 -- allows us only to insert elements into a heap in decreasing order:

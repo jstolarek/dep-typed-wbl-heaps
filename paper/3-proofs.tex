@@ -59,7 +59,7 @@ findMin empty          = \hilight{?}
 findMin (node p _ _ _) = p
 \end{code}
 \noindent
-Here we encounter first serious problem: what should \findMin return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it is unreasonable to assume it as default. We could return $\infty$, which represents priority lower than any natural number. But this would require us to extend definition of \Nat with $\infty$ which in turn would force us to modify all functions that pattern match on values of \Nat. Let's face it -- \findMin function is not defined for an empty heap but our types don't reflect that! To solve this problem we need to be more specific about types. One solution would be to use \texttt{Maybe} datatype:
+Here we encounter first serious problem: what should \texttt{findMin} return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it is unreasonable to assume it as default. We could return $\infty$, which represents priority lower than any natural number. But this would require us to extend definition of \Nat with $\infty$ which in turn would force us to modify all functions that pattern match on values of \Nat. Let's face it -- \texttt{findMin} function is not defined for an empty heap but our types don't reflect that! To solve this problem we need to be more specific about types. One solution would be to use \texttt{Maybe} datatype:
 
 \begin{code}
 data Maybe (A : Set) : Set where
@@ -72,7 +72,7 @@ findMinM (node p _ _ _) = just p
 \end{code}
 
 \noindent
-Returning \texttt{nothing} is like saying ``no output exists for the given input data''. This allows us to express the fact that \findMin is not defined for some input values. This solution works but it forces every caller of \texttt{findMinM} to inspect the result and be prepared for \texttt{nothing}.
+Returning \texttt{nothing} is like saying ``no output exists for the given input data''. This allows us to express the fact that \texttt{findMin} is not defined for some input values. This solution works but it forces every caller of \texttt{findMinM} to inspect the result and be prepared for \texttt{nothing}.
 
 The best solution to this problem is to ensure that \texttt{findMin} cannot be applied to an empty heap. We can achieve this by indexing \texttt{Heap} with its size. Luckily for us doing so will also allow to prove the rank property.
 
@@ -102,12 +102,12 @@ data Heap : Rank → Set where
 \noindent
 Empty heap contains no elements and so \Empty returns \Heap indexed with \texttt{0}. Non-empty node stores an element and two children of rank \textit{l} and \textit{r}. Therefore the size of the resulting heap is $1 + l + r$, which we express as $\suc(l + r)$. We must also supply a value of type \texttt{l ≥ r} to the constructor, ie. we must provide a proof that rank invariant holds.
 
-Proving the rank invariant itself is surprisingly simple. We can easily obtain evidence that rank of left subtree is not smaller than rank of right subtree by using \texttt{order} function, that compares two \texttt{Nat}s and supplies a proof of the result. But there is a another difficulty here. Since we index heaps by their sizes we now require that \makeT and \merge construct trees of correct size. We have to show that the size of merged heap is equal to the sum of sizes of heaps being merged. Recall that our merging algorithm is two pass: we use \merge to actually do the merging and \makeT to
-restore the rank invariant if necessary. We will therefore conduct the proof in two stages by showing that: a) \makeT creates a node of required size; b) recursive calls to \merge produce heaps of required size.
+Proving the rank invariant itself is surprisingly simple. We can easily obtain evidence that rank of left subtree is not smaller than rank of right subtree by using \texttt{order} function, that compares two \texttt{Nat}s and supplies a proof of the result. But there is a another difficulty here. Since we index heaps by their sizes we now require that \texttt{makeT} and \merge construct trees of correct size. We have to show that the size of merged heap is equal to the sum of sizes of heaps being merged. Recall that our merging algorithm is two pass: we use \merge to actually do the merging and \texttt{makeT} to
+restore the rank invariant if necessary. We will therefore conduct the proof in two stages by showing that: a) \texttt{makeT} creates a node of required size; b) recursive calls to \merge produce heaps of required size.
 
 \subsection{Proving makeT}\label{sec:twopass-makeT-proof}
 
-\makeT takes subtrees of rank \textit{l} and \textit{r} and produces a new tree with rank $\suc(l + r)$. We must prove that each of two cases of \makeT returns tree of correct size:
+\texttt{makeT} takes subtrees of rank \textit{l} and \textit{r} and produces a new tree with rank $\suc(l + r)$. We must prove that each of two cases of \texttt{makeT} returns tree of correct size:
 
 \begin{enumerate}
  \item If rank \texttt{l} is greater than or equal to rank \textbf{r} then no extra proof is necessary as everything follows from the definition of +.
@@ -120,7 +120,7 @@ suc (r + l) ≡ suc (l + r)
 That proof is done using congruence on $\suc$ function and commutativity of addition. We will define that proof as \texttt{makeT-lemma} as we will be using in subsequent proofs.
 \end{enumerate}
 \noindent
-New code of \makeT is show in \Listing{lst:rank-proof-makeT-two-pass}. Note the use of \texttt{subst}. We use it to apply the proof to the \Heap type constructor and convert the type produced by \texttt{(node p r≥l r l)} expression into the type given in type signature. % not exactly precise - type signature is transformed using definitions.
+New code of \texttt{makeT} is show in \Listing{lst:rank-proof-makeT-two-pass}. Note the use of \texttt{subst}. We use it to apply the proof to the \Heap type constructor and convert the type produced by \texttt{(node p r≥l r l)} expression into the type given in type signature. % not exactly precise - type signature is transformed using definitions.
 
 \begin{listing}[thb!]
 \begin{code}
@@ -134,7 +134,7 @@ makeT \{l-rank\} \{r-rank\} p l r | ge l≥r
 makeT \{l-rank\} \{r-rank\} p l r | le r≥l
   = subst Heap (makeT-lemma r-rank l-rank) (node p r≥l r l)
 \end{code}
-\caption{Implementation of \makeT with verified rank property.}\label{lst:rank-proof-makeT-two-pass}
+\caption{Implementation of \texttt{makeT} with verified rank property.}\label{lst:rank-proof-makeT-two-pass}
 \end{listing}
 
 \subsection{Proving merge}
@@ -405,7 +405,7 @@ As always \texttt{Heap} has two constructors. The \texttt{empty} constructor ret
 
 Altenkirch and others used this technique to prove correctness of merge sort for lists. In a weight biased leftist heap every path from root to a leaf is a sorted list so extending their technique to our case is traightforward. I will elide discussion of \texttt{merge} as there is nothing new there compared to Altenkirch's paper. I will insted focus on issue of creating singleton heaps and inserting elements into a heap as these cases now become interesting.
 
-When creating a singleton heap -- ie. a heap storing exactly one element -- we have to answer a question: "what priorities can we later store in a singleton heap that we just created?". "Any" seems to be a reasonable answer, which means the resulting heap will be indexed with 0, meaning: "Priorities lower or equal to 0 can be stored in this Heap" (remember that any priority is lower or equal to 0). With such a liberal definition of singleton heap it is easy to write definition of insert by requiring that input heap can store any priorities and so does the output heap:
+When creating a singleton heap -- ie. a heap storing exactly one element -- we have to answer a question: "what priorities can we later store in a singleton heap that we just created?". "Any" seems to be a reasonable answer, which means the resulting heap will be indexed with 0, meaning: "Priorities lower or equal to 0 can be stored in this Heap" (remember that any priority is lower or equal to 0). With such a liberal definition of singleton heap it is easy to write definition of insert by requiring that both input and output heap can store any priorities:
 
 \begin{code}
 singleton : (p : Priority) → Heap zero
@@ -415,16 +415,36 @@ insert : Priority → Heap zero → Heap zero
 insert p h = merge (singleton p) h
 \end{code}
 
-But what if we want to insert into a heap that is not indexed with 0? One solution is to be liberal and ``promote'' that heap so that after insertion it can store elements with any priorities. Remember the priority restriction can always be loosened but it cannot be tightened. However such a liberal approach might not be satisfactory. We might actually want to keep priority bounds as tight as possible. In that case we must begin by rewriting singleton function:
+But what if we want to insert into a heap that is not indexed with 0? One solution is to be liberal and ``promote'' that heap so that after insertion it can store elements with any priorities. Remember that priority restriction can always be loosened but it cannot be tightened easily. However such a liberal approach might not always be satisfactory. We might actually want to keep priority bounds as tight as possible. Let us explore that possibility.
+
+We may begin by rewriting the singleton function:
 
 \begin{code}
-singletonB : {b : Priority} → (p : Priority) → p ≥ b → Heap b
-singletonB p p≥b = node p one p≥b empty empty
+singletonB' : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+singletonB' p p≥b = node p one p≥b empty empty
 \end{code}
 \noindent
-This new function creates a heap that stores priority \texttt{p} and puts the bound \texttt{b} on resulting singleton heap. We must supply \texttt{singletonB} with a proof that putting restriction \textbf{b} on the heap storing priority \textbf{p} is possible. But if we try to write new \texttt{insertB} function we encounter problems:
+Now \texttt{singletonB'} allows to construct a heap containing a single element with priority \texttt{p}, but the whole heap is bounded by some \texttt{b}. To construct such a heap we must supply a proof that \texttt{p} can actually be stored in \texttt{Heap b}. We can now implement new insertion function:
 
+\begin{code}
+insertB' : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+insertB' p p≥b h = merge (singletonB' p p≥b) (liftBound p≥b h)
+\end{code}
+\noindent
+where \texttt{liftBound} is a function that loosens the priority bound of a heap, given evidence that it is possible to do so (ie. that the new bound is less restrictive than the old one). But if we try to construct a heap using \texttt{insertB'} we quickly discover that it is useless:
 
+\begin{code}
+example-heap : Heap zero
+example-heap = (insertB' (suc zero) ge0
+               (insertB' zero \hilight{?} empty))
+\end{code}
+\noindent
+In the second call to \texttt{insertB'} we are required to supply a proof that $0 \ge 1$, which of course is not possible. The problem is that using the new \texttt{insertB'} function we can only lower the bound on the heap and thus insert the elements into the heap in decreasing order:
 
-But what if we actaully want to enforce bounds on a singleton heap? In that situation we must supply \texttt{singleton} function with a proof that the priority we are inserting into the singleton heap can really be insterted into it. To do this we will need a few additional functions. First of all we need a new singleton function that will construct a singleton Heap with a bound. This requires us to supply additional parameter that is evidence that priority we just inserted into our singleton heap is lower than the bound.
-
+\begin{code}
+example-heap : Heap zero
+example-heap = (insertB' zero ge0
+               (insertB' (suc zero) ge0 empty))
+\end{code}
+\noindent
+This is a direct consequence of our requirement that the heap we are inserting into is restricted exactly by the priority of element we are inserting. The bottom line is: indexing \texttt{Heap} with priority allows to prove that \texttt{merge} maintains the priority invariant but otherwise it is not very helpful.
