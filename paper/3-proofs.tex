@@ -1,24 +1,8 @@
-\section{... (two-pass merge)}
-
-%Before diving into implementetion let's take a quick look at our assumptions. Firstly, I assume that we have definitions of Nat and +. We define priority and rank as nats.
+\section[Unverfied implementation]{Unverfied implementation\footnote{Full unverified implementation is given in the \texttt{TwoPassMerge.} \texttt{NoProofs} module of the companion code.}}
 
 % Maybe explain sized types here? Sized types are used to guide the termination checker, they are not always required, sometimes termination checker can do a good job without them. We encounter some agda problems and sized types sometimes don't work even though they should.
 
-We use following notation:
-
-\begin{itemize}
- \item $h1$, $h2$ - first heap, second heap
- \item $p1$, $p2$ - priority of root element in first/second heap
- \item $l1$, $r1$ - left and right subtrees of first  heap
- \item $l2$, $r2$ - left and right subtrees of second heap
- \item $l1-r$, $r1-r$ - rank of left and right subtrees of first  heap
- \item $l2-r$, $r2-r$ - rank of left and right subtrees of second heap
-\end{itemize}
-
-
-\subsection{No proofs}
-
-We begin with a simple implementation that has no proof of correctness. Let us define \Heap datatype:
+Let us begin by implementing the described algorithms without any proof of their correctness. We define \Heap datatype as:
 
 \begin{code}
 data Heap : Set where
@@ -46,34 +30,26 @@ merge (node p1 h1-r l1 r1) (node p2 h2-r l2 r2)
 \caption{Implementation of makeT and merge}\label{lst:makeT-merge}
 \end{listing}
 
-According to this definition a heap is either empty or it is a node with \Priority, \Rank and two subheaps. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store \Rank in the constructor is that it will be instructive to show in Section \ref{sec:rank-property} how it is converted into inductive type family index.
+According to this definition a heap is either empty or it is a node with priority, rank and two subheaps. Both priority and rank are represented as \texttt{Nat}s so we can perform on them any operation that works on natural numbers. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store rank in the constructor is that it will be instructive to show in Section \ref{sec:rank-property} how it is converted into inductive type family index.
 
-\subsubsection{merge}
+\subsection{merge}
 
 Heaps are merged using a recursive algorithm. We need to consider four cases:
 
 \begin{enumerate}
- \item (base case) $h1$ is empty - return $h2$.
- \item (base case) $h2$ is empty - return $h1$.
- \item (inductive case) priority $p1$ is higher than $p2$ -- $p1$ becomes new root, $l1$ becomes its one child and result of merging $r1$ with $h2$ becomes the other child.
- \item (inductive case) priority $p2$ is higher than $p1$ -- $p2$ becomes new root, $l2$ becomes its one child and result of merging $r2$ with $h1$ becomes the other child.
+ \item (base case) \texttt{h1} is empty: return \texttt{h2}.
+ \item (base case) \texttt{h2} is empty: return \texttt{h1}.
+ \item (inductive case) priority \texttt{p1} is higher than \texttt{p2}: \texttt{p1} becomes new root, \texttt{l1} becomes its one child and \texttt{r1}$\oplus$\texttt{h2} becomes the other.
+ \item (inductive case) priority \texttt{p2} is higher than \texttt{p1}: \texttt{p2} becomes new root, \texttt{l2} becomes its one child and \texttt{r2}$\oplus$\texttt{h1} becomes the other.
 \end{enumerate}
+\noindent
+There is no guarantee that \textit{r1}$\oplus$\textit{h2} (or \textit{r2}$\oplus$\textit{h1}) will be smaller or equal to \textit{l1} (or \textit{l2}). To ensure that rank invariant is maintained we use a helper function \texttt{makeT}, as proposed by Okasaki \cite{Oka99}. We pass new children and the priority to \texttt{makeT}, which creates a new node with the given priority and swaps the children if necessary (see \Listing{lst:makeT-merge}). As Okasaki points out this algorithm can be view as having two passes: a top-down pass that performs merging and a bottom-up pass that restores the rank invariant.
 
-There is no guarantee that rank of $r1$ merged with $h2$ (or $r2$ merged with $h1$) will be smaller or equal to rank of $l1$ (or $l2$). To ensure that rank invariant is maintained we use a helper function \makeT, as proposed by Okasaki \cite{Oka99}. We pass new children to \makeT, which creates a new node and swaps the children if necessary (see \Listing{lst:makeT-merge}). As Okasaki points out this algorithm can be view as having two passes: a top-down pass that performs merging and a bottom-up pass that restores the rank invariant.
+\subsection{insert}
 
-\subsubsection{insert}
+Insert can now be defined in terms of merging with a singleton heap as described in Section~\ref{sec:wblh}. See companion code for implementation.
 
-We can now implement merge as described in Section~\ref{sec:wblh}:
-
-\begin{code}
-singleton : Priority → Heap
-singleton p = node p one empty empty
-
-insert : Priority → Heap → Heap
-insert p h = merge (singleton p) h
-\end{code}
-
-\subsubsection{findMin}
+\subsection{findMin and deleteMin}
 
 To retrieve element with the highest priority we return value stored in the root of a heap:
 
@@ -82,8 +58,8 @@ findMin : Heap → Priority
 findMin empty          = \hilight{?}
 findMin (node p _ _ _) = p
 \end{code}
-
-Here we encounter first serious problem: what should \findMin return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it unreasinable to assume it as default. We could return $\inf$, which represents lower priority than any natural number. But this would require us to extend definition of \Nat with $\inf$ which in turn would force us to modify all functions that pattern match on values of \Nat. Let's face it -- \findMin function is not defined for an empty heap but types don't reflect that! To solve our problem we need to be more specific about our types. One solution would be to use \texttt{Maybe} datatype:
+\noindent
+Here we encounter first serious problem: what should \findMin return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it is unreasonable to assume it as default. We could return $\infty$, which represents priority lower than any natural number. But this would require us to extend definition of \Nat with $\infty$ which in turn would force us to modify all functions that pattern match on values of \Nat. Let's face it -- \findMin function is not defined for an empty heap but our types don't reflect that! To solve this problem we need to be more specific about types. One solution would be to use \texttt{Maybe} datatype:
 
 \begin{code}
 data Maybe (A : Set) : Set where
@@ -95,29 +71,24 @@ findMinM empty          = nothing
 findMinM (node p _ _ _) = just p
 \end{code}
 
-Returning \texttt{nothing} is like saying ``no output exists for the given input data''. This allows us to express the fact that \findMin is not defined for some input values. But we can do better by ensuring that \findMin is never called for an empty heap.
+\noindent
+Returning \texttt{nothing} is like saying ``no output exists for the given input data''. This allows us to express the fact that \findMin is not defined for some input values. This solution works but it forces every caller of \texttt{findMinM} to inspect the result and be prepared for \texttt{nothing}.
 
-\subsubsection{deleteMin}
+The best solution to this problem is to ensure that \texttt{findMin} cannot be applied to an empty heap. We can achieve this by indexing \texttt{Heap} with its size. Luckily for us doing so will also allow to prove the rank property.
 
-Definition of \deleteMin is based on description in Section~\ref{sec:wblh}. We face the same problem again:
+Implementation of \deleteMin is based on description in Section~\ref{sec:wblh}. It faces the same problem as \texttt{findMin} -- it is undefined for empty heap.
 
-\begin{code}
-deleteMin : Heap → Heap
-deleteMin empty          = \hilight{?}
-deleteMin (node _ _ l r) = merge l r
-\end{code}
+\section[Prooving rank property]{Prooving rank property\footnote{Full implementation of proof of rank property is given in the \texttt{TwoPassMerge.} \texttt{RankProof} module of the companion code.}}\label{sec:rank-property}
 
-\subsection{Prooving rank property}\label{sec:rank-property}
-
-We will now prove that our implementation maintains the rank property. The first step is to express \Rank at the type level as an index of \Heap datatype. Since rank of a heap is now part of its type we can ensure that rank of left subtree is not smaller than rank of the right subtree. We do this be requiring that \node constructor is given a proof that rank invariant holds. To express such proofs we define ≥ datatype:
+We will now prove that our implementation maintains the rank property. The first step is to express \Rank at the type level as an index of \Heap datatype. Since rank of a heap is now part of its type we can ensure that rank of left subtree is not smaller than rank of the right subtree. We do this be requiring that \node constructor is given a proof that rank invariant holds. To express such proofs we use ≥ datatype:
 
 \begin{code}
 data _≥_ : Nat → Nat → Set where
-  ge0 : \{  y : Nat\}         → y     ≥ zero
+  ge0 : \{  y : Nat\} → y     ≥ zero
   geS : \{x y : Nat\} → x ≥ y → suc x ≥ suc y
 \end{code}
 \noindent
-Values of this type are indexed by two natural numbers. They prove that: a) any natural number is greater than or equal to \texttt{0} (\texttt{ge0} constructor); b) if two numbers are in greater-equal relation then their successors are also in that relation (\texttt{geS} constructor). This type represents concept of data as evidence~\cite{AltMcBMcK05}. We use \texttt{order} function to compare two natural numbers and \texttt{Order} datatype to express the result. Implementation is located in \texttt{Basics.Ordering} module of the companion code.
+Values of this type, which are indexed by two natural numbers, prove that: a) any natural number is greater than or equal to \texttt{0} (\texttt{ge0} constructor); b) if two numbers are in greater-equal relation then their successors are also in that relation (\texttt{geS} constructor). This type represents concept of data as evidence~\cite{AltMcBMcK05}. We use \texttt{order} function to compare two natural numbers and \texttt{Order} datatype to express the result. Implementation is located in \texttt{Basics.Ordering} module of the companion code.
 
 Having defined ≥ we can now give new definition of \Heap:
 
@@ -129,14 +100,14 @@ data Heap : Rank → Set where
 \end{code}
 
 \noindent
-Empty heap contains no elements and so \Empty returns \Heap indexed with \texttt{0}. Non-empty node stores an element and two children of size \texttt{l} and \texttt{r}. Therefore the size of the resulting heap is \texttt{1} + \texttt{l} + \texttt{r}, which we express as \texttt{suc(l + r)}. We must also supply a value of type \texttt{l ≥ r} to the constructor, ie. we must provide a proof that rank invariant holds.
+Empty heap contains no elements and so \Empty returns \Heap indexed with \texttt{0}. Non-empty node stores an element and two children of rank \textit{l} and \textit{r}. Therefore the size of the resulting heap is $1 + l + r$, which we express as $\suc(l + r)$. We must also supply a value of type \texttt{l ≥ r} to the constructor, ie. we must provide a proof that rank invariant holds.
 
-Proving the rank invariant itself is surprisingly simple. We can easily obtain evidence that rank of left subtree is not smaller than rank of right subtree by using \texttt{order} function, that compares two \texttt{Nat}s and supplies a proof of the result. But there is a another difficulty here. Since we index heaps by their sizes we now require that \makeT and \merge construct trees of correct size. Prooving this requires some substantial work on our side. We need to prove that the size of merged heap is equal to the sum of sizes of heaps being merged. Recall that our merging algorithm is two pass: we use \merge to actually do the merging and \makeT to
-restore the rank invariant if necessary. This means our proof will be two-stage. We need to prove that: a) \makeT creates a node of required size; b) recursive calls to \merge produce heaps of required size.
+Proving the rank invariant itself is surprisingly simple. We can easily obtain evidence that rank of left subtree is not smaller than rank of right subtree by using \texttt{order} function, that compares two \texttt{Nat}s and supplies a proof of the result. But there is a another difficulty here. Since we index heaps by their sizes we now require that \makeT and \merge construct trees of correct size. We have to show that the size of merged heap is equal to the sum of sizes of heaps being merged. Recall that our merging algorithm is two pass: we use \merge to actually do the merging and \makeT to
+restore the rank invariant if necessary. We will therefore conduct the proof in two stages by showing that: a) \makeT creates a node of required size; b) recursive calls to \merge produce heaps of required size.
 
-\subsubsection{Proving makeT}
+\subsection{Proving makeT}
 
-\makeT takes subtrees of rank \texttt{l} and \texttt{r} and produces a new tree with rank \texttt{suc(l + r)}. We must prove that each case of \makeT returns tree of correct size:
+\makeT takes subtrees of rank \textit{l} and \textit{r} and produces a new tree with rank $\suc(l + r)$. We must prove that each of two cases of \makeT returns tree of correct size:
 
 \begin{enumerate}
  \item If rank \texttt{l} is greater than or equal to rank \textbf{r} then no extra proof is necessary as everything follows from the definition of +.
@@ -146,10 +117,10 @@ restore the rank invariant if necessary. This means our proof will be two-stage.
 suc (r + l) ≡ suc (l + r)
 \end{equation*}
 
-That proof is done using congruence on suc function and commutativity of addition. We will define that proof as \texttt{makeT-lemma} as we will be using in subsequent proofs.
+That proof is done using congruence on $\suc$ function and commutativity of addition. We will define that proof as \texttt{makeT-lemma} as we will be using in subsequent proofs.
 \end{enumerate}
-
-New code of \makeT is show in \Listing{lst:rank-proof-makeT-two-pass}. Note the use of \texttt{subst}. We use it to apply the proof to the \Heap type constructor and convert the type produced by $(node p r≥l r l)$ expression into type given in the type signature. % not exactly precise - type signature is transformed using definitions.
+\noindent
+New code of \makeT is show in \Listing{lst:rank-proof-makeT-two-pass}. Note the use of \texttt{subst}. We use it to apply the proof to the \Heap type constructor and convert the type produced by \texttt{(node p r≥l r l)} expression into the type given in type signature. % not exactly precise - type signature is transformed using definitions.
 
 \begin{listing}[thb!]
 \begin{code}
@@ -166,11 +137,11 @@ makeT \{l-rank\} \{r-rank\} p l r | le r≥l
 \caption{Implementation of \makeT with verified rank property.}\label{lst:rank-proof-makeT-two-pass}
 \end{listing}
 
-\subsubsection{Proving merge}
+\subsection{Proving merge}
 
-We need to prove that all four cases of merge -- shown in \Listing{lst:makeT-merge} -- produce heap of required size. To make notation more compact in this section I will use $h1$ and $h2$ to denote ranks of heaps being merged and $l1$, $r1$, $l2$ and $r2$ to denote ranks of their children. $p1$ and $p2$ still denote priorities stored in the roots of merged heaps. The size of merged heap must be equal to the sum of input heaps, ie. $h1 + h2$.
+Now we must show that all four cases of merge -- shown in \Listing{lst:makeT-merge} -- produce heap of required size.
 
-\subsubsection{Proving merge, base cases}
+\subsubsection{base cases}
 
 In the first base case we have $h1 ≡ 0$. Therefore:
 
@@ -178,20 +149,108 @@ In the first base case we have $h1 ≡ 0$. Therefore:
 h1 + h2 ≡ 0 + h2 \stackrel{+, (1)}{≡} h2
 \end{equation*}
 \noindent
-Which ends the first proof -- everything follows from definition of $+$. In the second base case $h2 ≡ 0$ and things are slightly more difficult: the definition of $+$ only says that $0$ is the left identity, but it doesn't say that it is also the right identity. We must therefore construct a proof that:
+Which ends the first proof -- everything follows from definition of $+$\footnote{The $\stackrel{+, (1)}{≡}$ notation means that equality follows from first defining equation of $+$.}. In the second base case $h2 ≡ 0$ and things are slightly more difficult: the definition of $+$ only says that $0$ is the left identity, but it doesn't say that it is also the right identity. We must therefore construct a proof that:
 
 \begin{equation*}
 h1 + 0 \stackrel{?}{≡} h1
 \end{equation*}
 \noindent
-Luckily for us, we already have that proof defined in the \texttt{Basics.Reasoning} module as \texttt{+0}. The only problem is that our proof is in the opposite direction. It proofs $a ≡ a + 0$, not $a + 0 ≡ a$. We solve that by applying symmetry to our proof. Code for the base cases is shown in \Listing{lst:rank-proof-merge-two-pass}.
+Luckily for us, we already have that proof defined in the \texttt{Basics.Reasoning} module as \texttt{+0}. The only problem is that our proof is in the opposite direction. It proves $a ≡ a + 0$, not $a + 0 ≡ a$. We solve that using symmetry of $≡$.% Code for the base cases is shown in \Listing{lst:rank-proof-merge-two-pass}.
+
+\subsubsection{inductive cases}\label{sec:twopass-merge-inductive}
+
+In an indective case we know that neither \texttt{h1} nor \texttt{h2} is empty, ie. their sizes are given as $\suc (l1 + r1)$ and $\suc (l2 + r2)$ respectively. This means that Agda sees expected size of the merged heap as:
+
+\begin{equation*}
+\suc (l1 + r1) + \suc (l2 + r2) \stackrel{+, (2)}{≡} \suc ((l1 + r1) + \suc (l2 + r2))
+\end{equation*}
+\noindent
+This will be our goal in both proofs of inductive cases.
+
+In the first inductive case we construct the result by calling\footnote{Note that \texttt{node} constructor in the unverified implementation show in \Listing{lst:makeT-merge} takes slightly different parameters. This is because we changed the definition of \Heap datatype to take the proof of rank property instead of storing the rank in the constructor.}:
+
+\begin{code}
+makeT p1 l1 (merge r1 (node p2 l2≥r2 l2 r2))
+\end{code}
+\noindent
+Call to \texttt{node} with \texttt{l2} and \texttt{r2} as parameters produces node of rank $\suc(l2 + r2)$. Passing it to \texttt{merge} together with \texttt{r1} gives a tree of rank $r1 + \suc(l2 + r2)$ (by the type signature of \texttt{merge}). Passing result of \texttt{merge} to \texttt{makeT} produces tree of rank $\suc (l1 + (r1 + \suc (l2 + r2)))$ by the type signature of \texttt{makeT}. We must therefore construct a proof that:
+
+\begin{equation*}
+\suc (l1 + (r1 + \suc (l2 + r2))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
+\end{equation*}
+\noindent
+Appealing to congruence on $\suc$ leaves us with a proof of:
+
+\begin{equation*}
+l1 + (r1 + \suc (l2 + r2)) ≡ (l1 + r1) + \suc (l2 + r2)
+\end{equation*}
+\noindent
+Substituting $a = l1$, $b = r1$ and $c = suc (l2 + r2)$ gives:
+
+\begin{equation*}
+a + (b + c) ≡ (a + b) + c
+\end{equation*}
+\noindent
+This is associativity of addition, that we already proved in \texttt{Basics.Reasoning}.
+
+The proof of second inductive case is much more interesting. This time we construct the resulting node by calling:
+
+\begin{code}
+makeT p2 l2 (merge r2 (node p1 l1≥r1 l1 r1))
+\end{code}
+\noindent
+and therefore have to prove that:
+
+\begin{equation*}
+\suc (l2 + (r2 + \suc (l1 + r1))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
+\end{equation*}
+\noindent
+Again we use congruence to deal with the outer calls to $\suc$ and substitute $a = l2$, $b = r2$ and $c = l1 + r1$. This leaves us with a proof of lemma A:
+
+\begin{equation*}
+a + (b + \suc c) ≡ c + \suc (a + b)
+\end{equation*}
+\noindent
+From associativity we know that:
+
+\begin{equation*}
+a + (b + \suc c) ≡ (a + b) + \suc c
+\end{equation*}
+\noindent
+If we prove lemma B:
+
+\begin{equation*}
+(a + b) + \suc c ≡ c + \suc (a + b)
+\end{equation*}
+\noindent
+then we can combine lemmas A and B using transitivity to get the final proof. We substitute $n = a + b$ and $m = c$ and rewrite lemma B as:
+
+\begin{equation*}
+n + \suc m ≡ m + \suc n
+\end{equation*}
+\noindent
+From symmetry of \texttt{+suc} we know that:
+
+\begin{equation*}
+n + \suc m ≡ \suc (n + m)
+\end{equation*}
+\noindent
+Using transitivity we combine it with congruence on commutativity of addition to prove:
+
+\begin{equation*}
+\suc (n + m) ≡ \suc (m + n)
+\end{equation*}
+\noindent
+Again, using transitivity we combine it with \texttt{+suc} to show:
+
+\begin{equation*}
+\suc (m + n) ≡ m + \suc n
+\end{equation*}
+\noindent
+Which proves lemma B and therefore the whole proof is complete (\Listing{lst:twopass-merge-2nd-proof}, see companion code for complete code):
 
 \begin{listing}[thb!]
 \begin{code}
-proof-1 : (l1 r1 l2 r2 : Nat) → suc ( l1 + (r1 + suc (l2 + r2)))
-                              ≡ suc ((l1 + r1) + suc (l2 + r2))
-proof-1 l1 r1 l2 r2 = cong suc (+assoc l1 r1 (suc (l2 + r2)))
-
 lemma-B : (n m : Nat) → n + suc m ≡ m + suc n
 lemma-B n m = trans (sym (+suc n m)) (trans (cong suc (+comm n m)) (+suc m n))
 
@@ -201,139 +260,27 @@ lemma-A a b c = trans (+assoc a b (suc c)) (lemma-B (a + b) c)
 proof-2 : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
                               ≡ suc ((l1 + r1) + suc (l2 + r2))
 proof-2 l1 r1 l2 r2 = cong suc (lemma-A l2 r2 (l1 + r1))
-
-merge : {l r : Rank} → Heap l → Heap r → Heap (l + r)
-merge empty h2 = h2 -- FIRST BASE CASE
-merge {suc l} {zero} h1 empty
-  = subst Heap (sym (+0 (suc l))) h1 -- SECOND BASE CASE
-merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-  with p1 < p2
-merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-  | true
-  = subst Heap
-          (proof-1 l1-rank r1-rank l2-rank r2-rank) -- FIRST RECURSIVE CASE
-          (makeT p1 l1 (merge r1 (node p2 l2≥r2 l2 r2)))
-merge {suc .(l1-rank + r1-rank)} {suc .(l2-rank + r2-rank)}
-  (node {l1-rank} {r1-rank} p1 l1≥r1 l1 r1)
-  (node {l2-rank} {r2-rank} p2 l2≥r2 l2 r2)
-  | false
-  = subst Heap
-          (proof-2 l1-rank r1-rank l2-rank r2-rank) -- SECOND RECURSIVE CASE
-          (makeT p2 l2 (merge r2 (node p1 l1≥r1 l1 r1)))
 \end{code}
-\caption{Implementation of merge with verified rank property.}\label{lst:rank-proof-merge-two-pass}
+\caption{Proof of second inductive case of \texttt{merge}.}\label{lst:twopass-merge-2nd-proof}
 \end{listing}
 
-\subsubsection{Proving merge, inductive cases}
+\subsection{insert}
 
-In recursive case we know that neither $h1$ nor $h2$ is empty, ie. their sizes are given as $\suc (l1 + r1)$ and $\suc (l2 + r2)$ respectively. This means that Agda sees expected size of the merged heap as
-
-\begin{equation*}
-\suc (l1 + r1) + \suc (l2 + r2) \stackrel{+, (2)}{≡} \suc ((l1 + r1) + \suc (l2 + r2))
-\end{equation*}
-\noindent
-This will be our goal in both proofs of recursive cases.
-
-In the first inductive we construct the result by calling
-
-\begin{code}
-makeT p1 l1 (merge r1 (node p2 h2-r l2 r2))
-\end{code}
-\noindent
-as shown in the \Listing{lst:makeT-merge}\footnote{In the verified code shown in \Listing{lst:rank-proof-merge-two-pass} the \texttt{node} constructor takes slightly different parameters. This is because we changed the definition of \Heap datatype. This doesn't affect our reasoning here.}. Call to \texttt{node} with \texttt{l2} and \texttt{r2} as parameters produces node of rank $suc(l2 + r2)$\footnote{Remeber that \texttt{l2} denotes left child of the second tree in the code, while $l2$ denotes rank of that subtree.}. Passing it to \texttt{merge} together with \texttt{r1} gives a tree of rank $r1 + suc(l2 + r2)$ (by the type signature of \texttt{merge}). Passing result of \texttt{merge} to \texttt{makeT} produces tree of rank $suc (l1 + (r1 + suc (l2 + r2)))$ (by the type signature of \texttt{makeT}). We must therefore construct a proof that:
-
-\begin{equation*}
-\suc (l1 + (r1 + \suc (l2 + r2))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
-\end{equation*}
-\noindent
-Appealing to congruence on $\suc$ leaves us with a proof of
-
-\begin{equation*}
-l1 + (r1 + \suc (l2 + r2)) ≡ (l1 + r1) + \suc (l2 + r2)
-\end{equation*}
-\noindent
-Substituting $a = l1$, $b = r1$ and $c = suc (l2 + r2)$ we have
-
-\begin{equation*}
-a + (b + c) ≡ (a + b) + c
-\end{equation*}
-\noindent
-This is associativity of addition, that we already proved in \texttt{Basics.Reasoning}.
-
-The proof of second inductive case is much more interesting. This time we have to prove that:
-
-\begin{equation*}
-\suc (l2 + (r2 + \suc (l1 + r1))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
-\end{equation*}
-
-Again we use congruence to deal with the outer calls to $suc$ and substitute $a = l2$, $b = r2$ and $c = l1 + r1$. This leaves us with a proof of lemma A:
-
-\begin{equation*}
-a + (b + \suc c) ≡ c + \suc (a + b)
-\end{equation*}
-
-From associativity we know that:
-
-\begin{equation*}
-a + (b + \suc c) ≡ (a + b) + \suc c
-\end{equation*}
-
-If we prove lemma B:
-
-\begin{equation*}
-(a + b) + \suc c = c + \suc (a + b)
-\end{equation*}
-\noindent
-then we can combine it using transitivity to get the final proof. We can
-rewrite lemma B as:
-
-\begin{equation*}
-n + \suc m ≡ m + \suc n
-\end{equation*}
-\noindent
-where $n = a + b$ and $m = c$. From symmetry of \texttt{+suc} we have:
-
-\begin{equation*}
-n + (\suc m) ≡ \suc (n + m)
-\end{equation*}
-\noindent
-Using transitivity we combine it with congruence on commutativity of addition to prove:
-
-\begin{equation*}
-\suc (n + m) ≡ \suc (m + n)
-\end{equation*}
-\noindent
-Again, using transitivity we combine it with +suc:
-
-\begin{equation*}
-\suc (m + n) ≡ m + \suc n
-\end{equation*}
-
-Which proves lemma B and therefore the whole proof is complete. The code for this proof is shown in \Listing{lst:rank-proof-merge-two-pass}.
-
-\subsubsection{insert}
-
-We require that inserting an element into the heap increases itsran k by one. Now that rank is encoded as datatype index this fact is reflected in the type signatures of our functions. As previously we define insert as merge with a singleton heap. Size of singleton heap is (suc zero), while already existing heap has size n. According to definition of merge the
-resulting heap will therefore have size:
+We require that inserting an element into the heap increases its rank by one. Now that rank is encoded as datatype index this fact can be reflected in the type signatures of \texttt{insert}. As previously we define insert as merge with a singleton heap. Size of singleton heap is 1 (ie. \texttt{suc zero}), while already existing heap has size n. According to definition of merge the resulting heap will therefore have size:
 
 \begin{equation}
 (\suc \zero) + n \stackrel{+, (2)}{≡} \suc (\zero + n) \stackrel{+, (1)}{≡} \suc n
 \end{equation}
 \noindent
-Which is size we require in the type signature of insert. This means we don't need any additional proof because expected result follows from definitions.
+Which is the size we require in the type signature of \texttt{insert}. This means we don't need any additional proof because expected result follows from definitions.
 
-\subsubsection{findMin, deleteMin}
+\subsection{findMin, deleteMin}
 
-Having encoded rank at the type level we can now write total versions of \findMin and \deleteMin. By requiring that input \Heap has rank \texttt{suc n} we exclude the possibility of passing empty heap to any of these functions.
+Having encoded rank at the type level we can now write total versions of \texttt{findMin} and \texttt{deleteMin}. By requiring that input \Heap has rank \texttt{suc n} we exclude the possibility of passing empty heap to any of these functions.
 
-\subsection{Constructing equality proofs using transitivity}
+\section{Constructing equality proofs using transitivity}
 
-Now that constructed two specific proofs we can focus on a more general technique used in both cases. Let's rewrite proof-2 in a different fassion to see closely what is happening at each
-step. Inlining lemmas A and B into proof-2 gives:
+Now that we have conducted an inductive prove of merge in subsection \ref{sec:twopass-merge-inductive} we can focus on a general technique used in that proof. Let us rewrite \texttt{proof-2} in a different way to see closely what is happening at each step. Inlining lemmas A and B into \texttt{proof-2} gives:
 
 \begin{code}
 proof-2i : (l1 r1 l2 r2 : Nat) → suc (l2 + (r2  + suc (l1 + r1)))
@@ -345,50 +292,37 @@ proof-2i l1 r1 l2 r2 =
                   (+suc (l1 + r1) (l2 + r2))))
 \end{code}
 
-We see a lot of properties combined using transitivity. In general, if we have to prove:
+We see a lot of properties combined using transitivity. In general, if we have to prove $a ≡ e$ and we can prove $a ≡ b$ using $\prof 1$, $b ≡ c$ using $\prof 2$, $c ≡ d$ using $\prof 3$, $d ≡ e$ using $\prof 4$ then we can combine these proofs using transitivity to get our final proof:
 
 \begin{equation*}
-a ≡ e
+\trans\, (\prof 1)\, (\trans\, (\prof 2)\, (\trans\, (\prof 3)\, (\prof 4)))
 \end{equation*}
 \noindent
-and we can prove:
-
-\begin{equation*}
-a ≡ b, b ≡ c, c ≡ d, d ≡ e
-\end{equation*}
-\noindent
-then we can combine these proofs using transitivity:
-
-\begin{equation*}
-\trans (a ≡ b) (\trans (b ≡ c) (\trans (c ≡ d) (d ≡ e)))
-\end{equation*}
-\noindent
-
-While simple to use, combining proofs with transitivity can be not so obvious at first. Let's rewrite the proof we have conducted using following notation:
+While simple to use, combining proofs with transitivity can be not so obvious at first: the intermediate terms being proved are hidden from us and we have to reconstruct them every time we read our proof. Let us then replace usage of transitivity with the following notation, which explicitly shows intermediate proof steps as well as their proofs:
 
 \begin{align*}
-a& ≡[ proof 1 ]\\
-b& ≡[ proof 2 ]\\
-c& ≡[ proof 3 ]\\
-d& ≡[ proof 4 ]\\
+a& ≡[ \prof 1 ]\\
+b& ≡[ \prof 2 ]\\
+c& ≡[ \prof 3 ]\\
+d& ≡[ \prof 4 ]\\
 e& \Box
 \end{align*}
-
-Where proof 1 proves $a ≡ b$, proof 2 proves $b ≡ c$ and so on. In our
-particular case this will be:
+\noindent
+Rewriting \texttt{proof-2i} in this notation gives us:
 
 \begin{align*}
-                                \suc (l2 + (r2 + \suc (l1 + r1)))& ≡[ \congr \suc ]\\
-{\color{gray} \suc(} l2 + (r2 + \suc (l1 + r1))  {\color{gray})} & ≡[\assoc l2 r2 (\suc (l1 + r1))]\\
-{\color{gray} \suc(} (l2 + r2) + \suc (l1 + r1)  {\color{gray})} & ≡[ \sym (\Psuc (l2 + r2) (l1 + r1))]\\
-{\color{gray} \suc(} \suc ((l2 + r2) + (l1 + r1)){\color{gray})} & ≡[ \congr \suc (\comm (l2 + r2) (l1 + r1)) ]\\
-{\color{gray} \suc(} \suc ((l1 + r1) + (l2 + r2)){\color{gray})} & ≡[\Psuc (l1 + r1) (l2 + r2) ]\\
+                                \suc (l2 + (r2 + \suc (l1 + r1)))& ≡[ \congr\;\suc ]\\
+{\color{gray} \suc(} l2 + (r2 + \suc (l1 + r1))  {\color{gray})} & ≡[\assoc\;l2\;r2\;(\suc (l1 + r1))]\\
+{\color{gray} \suc(} (l2 + r2) + \suc (l1 + r1)  {\color{gray})} & ≡[ \sym (\Psuc\;(l2 + r2)\;(l1 + r1))]\\
+{\color{gray} \suc(} \suc ((l2 + r2) + (l1 + r1)){\color{gray})} & ≡[ \congr\;\suc\;(\comm\;(l2 + r2)\;(l1 + r1)) ]\\
+{\color{gray} \suc(} \suc ((l1 + r1) + (l2 + r2)){\color{gray})} & ≡[\Psuc\;(l1 + r1)\;(l2 + r2) ]\\
 {\color{gray} \suc(} (l1 + r1) + \suc (l2 + r2)  {\color{gray})} &
 \end{align*}
 
-We use grey $\suc$ to denote that everything happens under a call to \texttt{suc} (thanks to using congruence). Compare this notation with code of proof-2i in \Listing{missing-listing}. % conclusions from this comparison?
+\noindent
+We use ${\color{gray}\suc}$ to denote that everything happens under a call to \texttt{suc} (thanks to using congruence as the first proof). Compare this notation with code of proof-2i in \Listing{missing-listing}. % conclusions from this comparison?
 
-\subsection{Prooving priority property}
+\section{Prooving priority property}
 
 To prove the second property we will index nodes using Priority. Index
 of value n says that "this heap can store elements with priorities
