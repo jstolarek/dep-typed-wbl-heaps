@@ -165,23 +165,56 @@ merge .{↑ i} .{↑ j}
 insert : Priority → Heap zero → Heap zero
 insert p h = merge (singleton p) h
 
--- But what if we actaully want to enforce bounds imposed on the heap
--- by its index? In that situation we are required to provide proof
--- that the priority we are inserting into the Heap can really be
--- insterted into it. To do this we will need a few additional
--- functions. First of all we need a new singleton function that will
--- construct a singleton Heap with a bound. This requires us to supply
--- additional parameter that is evidence that priority we just
--- inserted into our singleton heap is lower than the bound.
-singletonB : {b : Priority} → (p : Priority) → p ≥ b → Heap b
-singletonB p p≥b = node p one p≥b empty empty
+-- Now we can create an example heap. The only difference between this
+-- heap and the heap without any proofs is that we need to explicitly
+-- instantiate implicit Priority parameter of empty constructor.
+heap : Heap zero
+heap = insert (suc (suc zero))
+      (insert (suc zero)
+      (insert zero
+      (insert (suc (suc (suc zero))) (empty {n = zero}))))
 
--- We also need a proof of transitivity of ≥. We proceed by induction
--- on c. Our base case is:
+-- But what if we actaully want to maintain bounds imposed on the heap
+-- by its index? To achieve that we need a new singleton function that
+-- constructs a singleton Heap with a bound equal to priority of a
+-- single element stored by the heap. To construct a proof required by
+-- node we use ≥sym, which proves that if p ≡ p then p ≥ p.
+singletonB : (p : Priority) → Heap p
+singletonB p = node p one (≥sym refl) empty empty
+
+-- We can now write new insert function that uses singletonB function:
+insertB : (p : Priority) → Heap p → Heap p
+insertB p h = merge (singletonB p) h
+-- However, that function is pretty much useless - it can insert
+-- element with priority p only to a heap that has p as its bound. In
+-- other words if we have Heap zero - ie. a heap that can store any
+-- possible priorityu -- the only thing that we can insert into it
+-- using insertB function is zero. That's clearly not what we want. We
+-- need a way to manipulate resulting priority bound.
+
+-- Let's try again. This time we will write functions with signatures:
+--
+--  singletonB' : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+--  insertB' : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+--
+-- Singleton allows to construct Heap containing priority p but
+-- bounded by b. This of course requires proof that p ≥ b, ie. that
+-- priority p can actually be stored in Heap b. insertB' is similar -
+-- it can insert element of priority p into Heap bounded by p but the
+-- resulting Heap can be bounded by b (provided that p ≥ b, for which
+-- we must supply evidence). Let's implement that.
+
+-- Implementing singletonB' is straightforward:
+singletonB' : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+singletonB' p p≥b = node p one p≥b empty empty
+
+-- To implement insertB' we need two additional functions. Firstly, we
+-- need a proof of transitivity of ≥. We proceed by induction on
+-- c. Our base case is:
 --
 --   a ≥ b ∧ b ≥ 0 ⇒ a ≥ 0
 --
--- In other words if c is 0 then ge0 proofs the property. If c is not
+-- In other words if c is 0 then ge0 proves the property. If c is not
 -- zero, then b is also not zero (by definitions of data constructors
 -- of ≥) and hence a is also not zero. This gives us second equation
 -- that is a recursive proof on ≥trans.
@@ -212,8 +245,26 @@ liftBound b≥n (node p rank p≥b l r)
 -- allows to insert element with priority p into a Heap bound by b,
 -- but only if we can supply evidence that p ≥ b, ie. that p can
 -- actually be stored in the heap.
-insertB : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
-insertB p p≥b h = merge (singletonB p p≥b) (liftBound p≥b h)
+insertB' : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+insertB' p p≥b h = merge (singletonB' p p≥b) (liftBound p≥b h)
+
+-- But if we try to create an example Heap as we did previously we
+-- quickly discover that this function isn't of much use either:
+heap' : Heap zero
+heap' = insertB' (suc (suc zero)) {!!}
+       (insertB' (suc zero) {!!}
+       (insertB' zero {!!}
+       (insertB' (suc (suc (suc zero))) {!!} (empty))))
+-- In third hole we are required to supply evidence that 0 ≥ 1 and
+-- that is not possible. The reason is that our insertB' function
+-- allows us only to insert elements into a heap in decreasing order:
+heap'' : Heap zero
+heap'' = insertB' zero ge0
+        (insertB' (suc zero) ge0
+        (insertB' (suc (suc zero)) (geS ge0)
+        (insertB' (suc (suc (suc zero))) (geS (geS ge0)) (empty))))
+-- This is a direct consequence of our requirement that priority of
+-- element being inserted and bound on the Heap we insert into match.
 
 -- Again, findMin and deletMin are incomplete
 findMin : {b : Priority} → Heap b → Priority
@@ -231,12 +282,3 @@ findMin (node p _ _ _ _) = p
 deleteMin : {b : Priority} → Heap b → Heap b
 deleteMin empty                 = {!!}
 deleteMin (node p rank p≥b l r) = merge (liftBound p≥b l) (liftBound p≥b r)
-
--- Now we can create an example heap. The only difference between this
--- heap and the heap without any proofs is that we need to explicitly
--- instantiate implicit Priority parameter if empty constructor.
-heap : Heap zero
-heap = insert (suc (suc zero))
-      (insert (suc zero)
-      (insert zero
-      (insert (suc (suc (suc zero))) (empty {n = zero}))))
