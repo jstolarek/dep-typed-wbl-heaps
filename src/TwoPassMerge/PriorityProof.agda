@@ -106,10 +106,10 @@ singleton p = node p one ge0 empty empty
 -- can insert into a singleton Heap. This means the resulting Heap
 -- would be index with some b (the bound on allowed Priority
 -- values). In such case however we are required to supply a proof
--- than p ≥ b. This would lead us to a definition like this:
+-- that p ≥ b. This would lead us to a definition like this:
 --
--- singletonP : {b : Priority} → (p : Priority) → p ≥ b → Heap b
--- singletonP p p≥b = node p one p≥b empty empty
+-- singletonB : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+-- singletonB p p≥b = node p one p≥b empty empty
 --
 -- We'll return to that idea soon.
 
@@ -173,8 +173,8 @@ insert p h = merge (singleton p) h
 -- construct a singleton Heap with a bound. This requires us to supply
 -- additional parameter that is evidence that priority we just
 -- inserted into our singleton heap is lower than the bound.
-singletonE : {b : Priority} → (p : Priority) → p ≥ b → Heap b
-singletonE p p≥b = node p one p≥b empty empty
+singletonB : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+singletonB p p≥b = node p one p≥b empty empty
 
 -- We also need a proof of transitivity of ≥. We proceed by induction
 -- on c. Our base case is:
@@ -208,12 +208,12 @@ liftBound b≥n empty = empty
 liftBound b≥n (node p rank p≥b l r)
   = node p rank (≥trans p≥b b≥n) l r
 
--- With singletonE and liftBound we can construct insert function that
+-- With singletonB and liftBound we can construct insert function that
 -- allows to insert element with priority p into a Heap bound by b,
 -- but only if we can supply evidence that p ≥ b, ie. that p can
 -- actually be stored in the heap.
-insertE : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
-insertE p p≥b h = merge (singletonE p p≥b) (liftBound p≥b h)
+insertB : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+insertB p p≥b h = merge (singletonB p p≥b) (liftBound p≥b h)
 
 -- Again, findMin and deletMin are incomplete
 findMin : {b : Priority} → Heap b → Priority

@@ -46,9 +46,9 @@ data Heap : {i : Size} → Set where
 --
 -- There are two more cases in the inductive part of merge definition:
 --
---    c) priority p1 is higher than p2 AND rank of l1 is greater than
---       rank of r1 + h2 - p1 becomes the root, l1 becomes the left
---       child and result of merging r1 with h2 becomes the right
+--    c) priority p1 is higher than p2 AND rank of l1 is not smaller
+--       than rank of r1 + h2 - p1 becomes the root, l1 becomes the
+--       left child and result of merging r1 with h2 becomes the right
 --       child child.
 --
 --               p1
@@ -56,17 +56,17 @@ data Heap : {i : Size} → Set where
 --             /    \
 --            l1  r1+h2
 --
---    d) priority p1 is higher than p2 AND rank of r1 + h2 is greater
---       than rank of l1 - p1 becomes the root, result of merging r1
---       with h2 becomes the left child and l1 becomes the right child
---       child.
+--    d) priority p1 is higher than p2 AND rank of r1 + h2 is not
+--       smaller than rank of l1 - p1 becomes the root, result of
+--       merging r1 with h2 becomes the left child and l1 becomes the
+--       right child child.
 --
 --               p1
 --              /  \
 --             /    \
 --           r1+h2  l1
 --
---    e) priority p2 is higher than p1 AND rank of l2 is greater than
+--    e) priority p2 is higher than p1 AND rank of l2 is not smaller
 --       rank of r2 + h1 - p2 becomes the root, l2 becomes the left
 --       child and result of merging r2 with h1 becomes the right
 --       child child.
@@ -76,10 +76,10 @@ data Heap : {i : Size} → Set where
 --             /    \
 --            l2  r2+h1
 --
---    f) priority p2 is higher than p1 AND rank of r2 + h1 is greater
---       than rank of l2 - p2 becomes the root, result of merging r2
---       with h1 becomes the left child and l2 becomes the right child
---       child.
+--    f) priority p2 is higher than p1 AND rank of r2 + h1 is not
+--       smaller than rank of l2 - p2 becomes the root, result of
+--       merging r2 with h1 becomes the left child and l2 becomes the
+--       right child child.
 --
 --               p2
 --              /  \
