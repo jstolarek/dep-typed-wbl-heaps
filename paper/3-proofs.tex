@@ -380,7 +380,7 @@ then we could use transitivity to combine these new proofs with proofs of induct
 suc (a + b) ≡ suc (b + a)
 \end{equation*}
 \noindent
-And that happens to be \texttt{makeT-lemma} from Section~\ref{sec:twopass-makeT-proof}! New version of \texttt{merge} was created by inlining calls to \texttt{makeT} and now it turns out we can construct proofs of that implementation by composing proofs of \texttt{makeT} and \texttt{merge}. This leads us to very elegant solutions presented in module \texttt{SinglePassMerge.}\texttt{RankProof} of the companion code.
+And that happens to be \texttt{makeT-lemma} from Section~\ref{sec:twopass-makeT-proof}! New version of \texttt{merge} was created by inlining calls to \texttt{makeT} and now it turns out we can construct proofs of that implementation by composing proofs of \texttt{makeT} and \texttt{merge}. This is exactly the same technique that was developed in Section~\ref{sec:eq-proofs-using-trans} only this time it is used on a slightly larger scale. It leads to a very elegant solutions presented in module \texttt{SinglePassMerge.}\texttt{RankProof} of the companion code.
 
 \section[Proving priority property]{Proving priority property\implementation{TwoPassMerge.PriorityProof}} \label{sec:priority-invariant}
 
