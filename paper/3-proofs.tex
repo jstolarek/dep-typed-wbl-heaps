@@ -1,5 +1,4 @@
-\section[Unverfied implementation]{Unverfied implementation\footnote{Implementation for this section is located in the \texttt{TwoPassMerge.}\texttt{NoProofs} module of the companion code.}}
-
+\section[Unverfied implementation]{Unverfied implementation\implementation{TwoPassMerge.NoProofs}} \label{sec:no-proofs}
 Let us begin by implementing the described algorithms without any proof of their correctness. We define \texttt{Heap} datatype as:
 
 \begin{code}
@@ -57,7 +56,7 @@ findMin empty          = \hilight{\{ \}?}
 findMin (node p _ _ _) = p
 \end{code}
 \noindent
-Here we encounter first serious problem: what should \texttt{findMin} return for an empty heap? If we were using Haskell one thing we could consider is throwing an error. But Agda is a total language, which means that every function must terminate with a result. Throwing errors is not an option. Another alternative is to assume some default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it is unreasonable to assume it as default. We could return $\infty$, which represents priority lower than any natural number. But this would require us to extend definition of \texttt{Nat} with $\infty$ which in turn would force us to modify all functions that pattern match on values of \texttt{Nat}. Let's face it -- \texttt{findMin} function is not defined for an empty heap but our types don't reflect that! To solve this problem we need to be more specific about types. One solution would be to use \texttt{Maybe} datatype:
+Here we encounter a problem: what should \texttt{findMin} return for an empty heap? If we were using a language like Haskell or ML one thing we could consider is throwing an error. This is the choice made by Okasaki in ``Purely Functional Data Structures''. But throwing an exception is precisely the thing that would make our implementation impure! Besides Agda is a total language, which means that every function must terminate with a result. Throwing error is therefore not an option. Another alternative is to assume a default priority that will be returned for an empty heap. This priority would have to be some distinguished natural number. $0$ represents the highest priority so it is unreasonable to assume it as default. We could return $\infty$, which represents priority lower than any natural number. This would require us to extend definition of \texttt{Nat} with $\infty$, which in turn would force us to modify all functions that pattern match on values of \texttt{Nat}. Redefining natural numbers for the sake of getting one function right also does not sound like a good option. Let's face it -- our types don't reflect that \texttt{findMin} function is not defined for an empty heap! To solve this problem we need to be more specific about types. One solution would be to use \texttt{Maybe} datatype:
 
 \begin{code}
 data Maybe (A : Set) : Set where
@@ -76,7 +75,7 @@ The best solution to this problem is to ensure that \texttt{findMin} cannot be a
 
 Implementation of \texttt{deleteMin} is based on description in Section~\ref{sec:wblh}. It faces the same problem as \texttt{findMin} -- it is undefined for empty heap.
 
-\section[Prooving rank property]{Prooving rank property\footnote{Implementation for this section is located in the \texttt{TwoPassMerge.}\texttt{RankProof} module of the companion code.}}\label{sec:rank-property}
+\section[Prooving rank property]{Prooving rank property\implementation{TwoPassMerge.RankProof}} \label{sec:rank-property}
 
 We will now prove that our implementation maintains the rank property. The first step is to express \texttt{Rank} at the type level as an index of \texttt{Heap} datatype. Since rank of a heap is now part of its type we can ensure that rank of left subtree is not smaller than rank of the right subtree. We do this be requiring that \texttt{node} constructor is given a proof that rank invariant holds. To express such proofs we use ≥ datatype:
 
@@ -320,7 +319,7 @@ Rewriting \texttt{proof-2i} in this notation gives us:
 \noindent
 We use ${\color{gray}\suc}$ to denote that everything happens under a call to \texttt{suc} (thanks to using congruence as the first proof). If you compare this notation with code of \texttt{proof-2i} you'll see that proofs in square brackets correspond to proofs with have combined using $\trans$, while series of expressions left of $≡$ parallels our reasoning conducted in Section \ref{sec:twopass-merge-inductive}. Here of course we don't use substitutions as before, but they were used only to improve readability.
 
-\section[Proving rank property for single-pass merge by composing existing proofs]{Proving rank property for single-pass merge by composing existing proofs\footnote{Implementation for this section is located in the \texttt{SinglePassMerge.}\texttt{RankProof} module of the companion code.}}
+\section[Proving rank property for single-pass merge by composing existing proofs]{Proving rank property for single-pass merge by composing existing proofs\implementation{SinglePassMerge.RankProof}} \label{sec:single-pass-merge-proof-by-comp}
 
 As mentioned in Section \ref{sec:twopass-merge} \texttt{merge} can be viewed as consisting of two passes. But we can inline calls to \texttt{makeT} into \texttt{merge} thus obtaining a single pass algorithm. This new algorithm will have two bases cases (as previously) and four inductive cases:
 
@@ -383,14 +382,14 @@ suc (a + b) ≡ suc (b + a)
 \noindent
 And that happens to be \texttt{makeT-lemma} from Section~\ref{sec:twopass-makeT-proof}! New version of \texttt{merge} was created by inlining calls to \texttt{makeT} and now it turns out we can construct proofs of that implementation by composing proofs of \texttt{makeT} and \texttt{merge}. This leads us to very elegant solutions presented in module \texttt{SinglePassMerge.}\texttt{RankProof} of the companion code.
 
-\section[Proving priority property]{Proving priority property\footnote{Implementation for this section is located in the \texttt{TwoPassMerge.}\texttt{PriorityProof} module of the companion code.}}
+\section[Proving priority property]{Proving priority property\implementation{TwoPassMerge.PriorityProof}} \label{sec:priority-invariant}
 
 To prove priority property we will apply technique demonstrated by Altenkirch, McBride and McKinna in Section 5.2 of ``Why Dependent Types Matter'' \cite{AltMcBMcK05}. We will index \texttt{Heap} with \texttt{Priority}\footnote{To keep things simple we forget about rank proof we conducted earlier -- in this section we once again store Rank explicitly in the \texttt{node} constructor.}. Index of value n says that ``this heap can store elements with priorities n or lower''\footnote{Remember that lower priority means larger \texttt{Nat}. So if relation $p ≥ n$ holds for priorities $p$ and $n$ then $n$ is a priority higher than $p$.}. In other words \texttt{Heap} indexed with 0 can store any priority, while \texttt{Heap} indexed with 3 can store priorities 3, 4 and lower, but can't store 0, 1 and 2. The new definition of \texttt{Heap} looks like this\footnote{Actual implementation in the companion code is slightly different. It uses sized types \cite{Abe08} to guide the termination checker in the \texttt{merge} function. This issue is orthogonal to proofs conducted here, hence I avoid sized types in the paper for the sake of simplicity.}:
 
 \begin{code}
 data Heap : Priority → Set where
-  empty : {n : Priority} → Heap n
-  node  : {n : Priority} → (p : Priority) → Rank → p ≥ n →
+  empty : \{n : Priority\} → Heap n
+  node  : \{n : Priority\} → (p : Priority) → Rank → p ≥ n →
           Heap p → Heap p → Heap n
 \end{code}
 \noindent
@@ -418,16 +417,18 @@ But what if we want to insert into a heap that is not indexed with 0? One soluti
 We may begin by rewriting the singleton function:
 
 \begin{code}
-singletonB' : {b : Priority} → (p : Priority) → p ≥ b → Heap b
+singletonB' : \{b : Priority\} → (p : Priority) → p ≥ b → Heap b
 singletonB' p p≥b = node p one p≥b empty empty
 \end{code}
 \noindent
 Now \texttt{singletonB'} allows to construct a heap containing a single element with priority \texttt{p}, but the whole heap is bounded by some \texttt{b}. To construct such a heap we must supply a proof that \texttt{p} can actually be stored in \texttt{Heap b}. We can now implement new insertion function:
 
+\begin{small}
 \begin{code}
-insertB' : {b : Priority} → (p : Priority) → p ≥ b → Heap p → Heap b
+insertB' : \{b : Priority\} → (p : Priority) → p ≥ b → Heap p → Heap b
 insertB' p p≥b h = merge (singletonB' p p≥b) (liftBound p≥b h)
 \end{code}
+\end{small}
 \noindent
 where \texttt{liftBound} is a function that loosens the priority bound of a heap, given evidence that it is possible to do so (ie. that the new bound is less restrictive than the old one). But if we try to construct a heap using \texttt{insertB'} we quickly discover that it is useless:
 
