@@ -6,8 +6,8 @@ data Heap : Set where
   empty : Heap
   node  : Priority → Rank → Heap → Heap → Heap
 \end{code}
-
-According to this definition a heap is either empty or it is a node with priority, rank and two subheaps. Both priority and rank are represented as \texttt{Nat}s so we can perform on them any operation that works on natural numbers. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store rank in the constructor is that it will be instructive to show in Section \ref{sec:rank-property} how it is converted into inductive type family index.
+\noindent
+According to this definition a heap is either empty or it is a node with priority, rank and two subheaps. Both \texttt{Priority} and \texttt{Rank} are aliases to \texttt{Nat} which allows us to perform on them any operation that works on \texttt{Nat} type. Note that storing rank in a node is redundant -- we could just compute size of a tree whenever necessary. The reason why I chose to store rank in the constructor is that it will be instructive to show in Section \ref{sec:rank-property} how it is converted into inductive type family index.
 
 \begin{listing}[htb!]
 \begin{code}
@@ -317,7 +317,7 @@ Rewriting \texttt{proof-2i} in this notation gives us:
 \end{align*}
 
 \noindent
-We use ${\color{gray}\suc}$ to denote that everything happens under a call to \texttt{suc} (thanks to using congruence as the first proof). If you compare this notation with code of \texttt{proof-2i} you'll see that proofs in square brackets correspond to proofs with have combined using $\trans$, while series of expressions left of $≡$ parallels our reasoning conducted in Section \ref{sec:twopass-merge-inductive}. Here of course we don't use substitutions as before, but they were used only to improve readability.
+We use ${\color{gray}\suc}$ to denote that everything happens under a call to \texttt{suc} (thanks to using congruence as the first proof). If you compare this notation with code of \texttt{proof-2i} you'll see that proofs in square brackets correspond to proofs with have combined using $\trans$, while series of expressions left of $≡$ parallels our reasoning conducted in Section \ref{sec:twopass-merge-inductive}.
 
 \section[Proving rank property for single-pass merge by composing existing proofs]{Proving rank property for single-pass merge by composing existing proofs\implementation{SinglePassMerge.RankProof}} \label{sec:single-pass-merge-proof-by-comp}
 
@@ -400,7 +400,7 @@ As always \texttt{Heap} has two constructors. The \texttt{empty} constructor ret
  \item children of a node can only be restricted to store priorities that are not higher than \texttt{p}. Example: if we restrict a node to store priorities 4 and lower we cannot restrict its children to store priorities 3 or higher. This restriction is expressed by index \texttt{p} in the subheaps passed to node constructor.
 \end{enumerate}
 
-Altenkirch and others used this technique to prove correctness of merge sort for lists. In a weight biased leftist heap every path from root to a leaf is a sorted list so extending their technique to our case is traightforward. I will elide discussion of \texttt{merge} as there is nothing new there compared to Altenkirch's paper. I will insted focus on issue of creating singleton heaps and inserting elements into a heap as these cases now become interesting.
+Altenkirch, McKinna and McBride \cite{AltMcBMcK05} used this technique to prove correctness of merge sort for lists. In a weight biased leftist heap every path from root to a leaf is a sorted list so extending their technique to our case is traightforward. I will elide discussion of \texttt{merge} as there is nothing new there compared to Altenkirch's paper. I will insted focus on issue of creating singleton heaps and inserting elements into a heap as these cases now become interesting.
 
 When creating a singleton heap -- ie. a heap storing exactly one element -- we have to answer a question: "what priorities can we later store in a singleton heap that we just created?". "Any" seems to be a reasonable answer, which means the resulting heap will be indexed with 0, meaning: "Priorities lower or equal to 0 can be stored in this Heap" (remember that any priority is lower or equal to 0). With such a liberal definition of singleton heap it is easy to write definition of insert by requiring that both input and output heap can store any priorities:
 
