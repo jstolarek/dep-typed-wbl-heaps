@@ -339,25 +339,25 @@ Now that we have inlined \texttt{makeT} we must construct new proofs of \texttt{
  \item (1st inductive case): call to \texttt{makeT} would not swap left and right when creating a node from parameters passed to it. We must prove:
 
 \begin{equation*}
-suc (l1 + (r1 + suc (l2 + r2))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+\suc (l1 + (r1 + \suc (l2 + r2))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
 \end{equation*}
 
 \item (2nd inductive case): call to \texttt{makeT} would swap left and right when creating a node from parameters passed to it. We must prove:
 
 \begin{equation*}
-suc ((r1 + suc (l2 + r2)) + l1) ≡ suc ((l1 + r1) + suc (l2 + r2))
+\suc ((r1 + \suc (l2 + r2)) + l1) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
 \end{equation*}
 
 \item (3rd inductive case): call to \texttt{makeT} would not swap left and right when creating a node from parameters passed to it. We must prove:
 
 \begin{equation*}
-suc (l2 + (r2  + suc (l1 + r1))) ≡ suc ((l1 + r1) + suc (l2 + r2))
+\suc (l2 + (r2  + \suc (l1 + r1))) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
 \end{equation*}
 
 \item (4th inductive case): call to \texttt{makeT} would swap left and right when creating a node from parameters passed to it. We must prove:
 
 \begin{equation*}
-suc ((r2 + suc (l1 + r1)) + l2) ≡ suc ((l1 + r1) + suc (l2 + r2))
+\suc ((r2 + \suc (l1 + r1)) + l2) ≡ \suc ((l1 + r1) + \suc (l2 + r2))
 \end{equation*}
 \end{itemize}
 
@@ -366,18 +366,18 @@ First thing to note is that inductive cases 1 and 3 require us to supply the sam
 Notice that properties we have to prove in cases 2 and 4 are very similar to properties 1 and 3. The only difference between 1 and 2 and between 3 and 4 is the order of parameters inside outer $\suc$ on the left hand side of equality. This is expected: in cases 2 and 4 we swap left and right subtree passed to node and this is directly reflected in the types.  Now, if we could prove that:
 
 \begin{equation*}
-suc ((r1 + suc (l2 + r2)) + l1) ≡ suc (l1 + (r1 + suc (l2 + r2)))
+\suc ((r1 + \suc (l2 + r2)) + l1) ≡ \suc (l1 + (r1 + \suc (l2 + r2)))
 \end{equation*}
 \noindent
 and
 \begin{equation*}
-suc ((r2 + suc (l1 + r1)) + l2) ≡ suc (l2 + (r2  + suc (l1 + r1)))
+\suc ((r2 + \suc (l1 + r1)) + l2) ≡ \suc (l2 + (r2  + \suc (l1 + r1)))
 \end{equation*}
 \noindent
 then we could use transitivity to combine these new proofs with proofs of inductive cases 1 and 3 (which are reused old proofs of two-passs merge). If we abstract the parameters in the above equalities we see that the property we need to prove in both cases is:
 
 \begin{equation*}
-suc (a + b) ≡ suc (b + a)
+\suc (a + b) ≡ \suc (b + a)
 \end{equation*}
 \noindent
 And that happens to be \texttt{makeT-lemma} from Section~\ref{sec:twopass-makeT-proof}! New version of \texttt{merge} was created by inlining calls to \texttt{makeT} and now it turns out we can construct proofs of that implementation by composing proofs of \texttt{makeT} and \texttt{merge}. This is exactly the same technique that was developed in Section~\ref{sec:eq-proofs-using-trans} only this time it is used on a slightly larger scale. It leads to a very elegant solutions presented in module \texttt{SinglePassMerge.}\texttt{RankProof} of the companion code.
