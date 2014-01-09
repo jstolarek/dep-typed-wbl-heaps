@@ -1,3 +1,7 @@
+-- This module is copied from Agda's standard library. It has been
+-- renamed (original name is Size) to avoid name clash in case you
+-- have the standard library installed.
+
 ------------------------------------------------------------------------
 -- The Agda standard library
 --
