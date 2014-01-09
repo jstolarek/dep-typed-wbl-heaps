@@ -33,6 +33,6 @@ This paper contributes the following:
 \begin{itemize}
  \item Section~\ref{sec:no-proofs} presents the problem of partiality of functions operating on a weight biased leftist heap. While the problem in general is well-known the solution to this particular case can be combined with verification of data structure's invariants. This is done in Section~\ref{sec:rank-property}.
  \item Section~\ref{sec:eq-proofs-using-trans} outlines a technique for constructing equality proofs using transitivity of propositional equality. This simple, standalone technique provides ground for understanding verification mechanisms provided by Agda's standard library.
- \item Section~\ref{sec:single-pass-merge-proof-by-comp} shows how composition of functions can be proved by composing their proofs.
- \item Section~\ref{sec:priority-invariant} examines the design decissions behind weight biased leftist heap API in presence of verification of priority property.
+ \item Section~\ref{sec:single-pass-merge-proof-by-comp} uses the technique introduced in Section~\ref{sec:eq-proofs-using-trans} to prove code obtained by inlining one function into another. This shows how programs created from smalls, verified components can be proven correct by composing existing proofs.
+ \item Section~\ref{sec:priority-invariant} contains a case study of how a proof of a data structure's invariant influences the design of that structure's API.
 \end{itemize}
