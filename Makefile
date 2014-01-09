@@ -2,7 +2,7 @@ source = src/*.agda src/Basics/*.agda src/TwoPassMerge/*.agda src/SinglePassMerg
 paper = paper/*.tex paper/llncs.cls paper/references.bib paper/splncs.bst
 other = Makefile LICENSE README.md
 
-PHONY: dist pdf
+PHONY: dist pdf upload
 
 dist: dep-typed-wbl-heaps.tar.gz
 
@@ -28,3 +28,7 @@ clean:
 	rm -f paper/dep-typed-wbl-heaps.blg
 	rm -f paper/dep-typed-wbl-heaps.log
 	rm -f paper/dep-typed-wbl-heaps.pdf
+
+upload: paper/dep-typed-wbl-heaps.pdf dep-typed-wbl-heaps.tar.gz
+	scp dep-typed-wbl-heaps.tar.gz stolarek@ics:public_html/data/media/pl/research
+	scp paper/dep-typed-wbl-heaps.pdf stolarek@ics:public_html/data/media/pl/research
