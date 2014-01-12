@@ -25,8 +25,11 @@ infixl 1 _≡_
 
 -- Below we prove basic properties of relations: symmetry,
 -- transitivity, congruence and substitution. If these proofs are not
--- familiar I encourage to take a look at one of tutorials mentioned
--- in Section 1.3 ("Assumptions and conventions") of the paper.
+-- familiar I encourage to take a look at tutorials on Agda Wiki. The
+-- most useful source in my opinion are the online lecture notes for
+-- the Computer Aided Formal Reasoning course by Thorsten Altenkirch:
+--
+-- http://www.cs.nott.ac.uk/~txa/g53cfr/
 sym : {A : Set} → {a b : A} → a ≡ b → b ≡ a
 sym refl = refl
 
