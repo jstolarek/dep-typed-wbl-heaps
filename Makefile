@@ -2,8 +2,6 @@ source = src/*.agda src/Basics/*.agda src/TwoPassMerge/*.agda src/SinglePassMerg
 paper = paper/*.tex paper/llncs.cls paper/references.bib paper/splncs.bst
 other = Makefile LICENSE README.md
 
-PHONY: dist pdf upload
-
 dist: dep-typed-wbl-heaps.tar.gz
 
 pdf: paper/dep-typed-wbl-heaps.pdf
