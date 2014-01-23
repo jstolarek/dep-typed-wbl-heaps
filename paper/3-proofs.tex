@@ -1,4 +1,4 @@
-\section[Unverfied implementation]{Unverfied implementation\implementation{TwoPassMerge.NoProofs}} \label{sec:no-proofs}
+\section[Unverified implementation]{Unverified implementation\implementation{TwoPassMerge.NoProofs}} \label{sec:no-proofs}
 We begin by implementing the described algorithms without any proof of their correctness. We define \texttt{Heap} datatype as:
 
 \begin{code}
@@ -73,7 +73,7 @@ Returning \texttt{nothing} is like saying ``no output exists for the given input
 
 The best solution to this issue is to ensure that \texttt{findMin} and \texttt{deleteMin} cannot be applied to an empty heap. We can achieve this by indexing \texttt{Heap} with its size. Doing so will also allow us to prove the rank property.
 
-\section[Prooving rank property]{Prooving rank property\implementation{TwoPassMerge.RankProof}} \label{sec:rank-property}
+\section[Proving rank property]{Proving rank property\implementation{TwoPassMerge.RankProof}} \label{sec:rank-property}
 
 We will now prove that our implementation maintains the rank property. The first step is to express \texttt{Rank} at the type level as an index of \texttt{Heap} datatype. Since rank of a heap is now part of its type we can ensure at compile time that rank of left subtree is not smaller than rank of the right subtree. We do this be requiring that \texttt{node} constructor is given a proof that rank invariant holds. To express such proof we use \texttt{≥} datatype:
 
@@ -314,7 +314,7 @@ Rewriting \texttt{proof-2i} in this notation gives:
 \end{align*}
 
 \noindent
-Gray ${\color{gray}\suc}$ denotes that everything happens under call to \texttt{suc} (thanks to using congruence on $\suc$ as the first proof). Comparing this notation to \texttt{proof-2i} on the previous page shows that proofs in angle brackets correspond to proofs combined using $\trans$, while series of expressions left of $≡$ parallels our reasoning from Section \ref{sec:twopass-merge-inductive}.
+Grey ${\color{gray}\suc}$ denotes that everything happens under call to \texttt{suc} (thanks to using congruence on $\suc$ as the first proof). Comparing this notation to \texttt{proof-2i} on the previous page shows that proofs in angle brackets correspond to proofs combined using $\trans$, while series of expressions left of $≡$ parallels our reasoning from Section \ref{sec:twopass-merge-inductive}.
 
 \section[Proving rank property for single pass merge by composing existing proofs]{Proving rank property for single pass merge by composing existing proofs\implementation{SinglePassMerge.RankProof}} \label{sec:single-pass-merge-proof-by-comp}
 

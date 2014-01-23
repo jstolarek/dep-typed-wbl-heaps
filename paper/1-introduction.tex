@@ -1,18 +1,18 @@
 \section{Introduction}
 
-Formal verification is a subject that constantly attracts attention of the research community. Static type systems are considered to be a lightweight verification method but they can be very powerful and precise as well. Dependent type systems in languages like Agda~\cite{Nor07}, Idris~\cite{Bra13} or Coq~\cite{coq} can be succesfully applied in practical verification tasks but they are not yet as widely used as they could potentially be. This paper contributes to changing that.
+Formal verification is a subject that constantly attracts attention of the research community. Static type systems are considered to be a lightweight verification method but they can be very powerful and precise as well. Dependent type systems in languages like Agda~\cite{Nor07}, Idris~\cite{Bra13} or Coq~\cite{coq} can be successfully applied in practical verification tasks but they are not yet as widely used as they could potentially be. This paper contributes to changing that.
 
 \subsection{Motivation}
 
 Two things have motivated me to write this paper. Firstly, while there are many tutorials on dependently typed programming and basics of verification, I could find little material demonstrating how to put verification to practical use. A must-read introductory paper ``Why Dependent Types Matter'' by Altenkirch, McKinna and McBride \cite{AltMcBMcK05}, which demonstrates how to use dependent types to prove correctness of merge sort algorithm, actually elides many proof details that are required in a real-world application. I want to fill in that missing gap by writing a tutorial that picks up where other tutorials have ended.
 
-My second motivation comes from reading Okasaki's classical ``Purely Functional Data Structures''~\cite{Oka99}. Despite book's title many presented implementations are not purely functional as they make use of impure exceptions to handle corner cases (eg. taking head of an empty list). I realized that using dependent types allows to do better and it is instructive to build a provably correct purely functional data structure on top of Okasaki's presentation.
+My second motivation comes from reading Okasaki's classical ``Purely Functional Data Structures''~\cite{Oka99}. Despite book's title many presented implementations are not purely functional as they make use of impure exceptions to handle corner cases (eg. taking head of an empty list). I realised that using dependent types allows to do better and it is instructive to build a provably correct purely functional data structure on top of Okasaki's presentation.
 
 In the end this paper is both a tutorial and a case study of weight biased leftist heap implemented in dependently typed setting. My goal is to teach the reader how to build complex proofs from simple ones. As a result the reader will be able to verify that operations on a data structure maintain required invariants. Acquired knowledge will allow to understand more advanced verification techniques, eg. equational reasoning provided by Agda's standard library or tactics system found in Idris \cite{Bra13} and Coq \cite{coq}.
 
 \subsection{Companion code}
 
-This tutorial comes with a standalone companion code written in Agda 2.3.4\footnote{\url{http://ics.p.lodz.pl/~stolarek/_media/pl:research:dep-typed-wbl-heaps.tar.gz}}. I assume the reader is reading companion code along with the paper. Due to space limitations I elide some proofs that are detailed in the code using Notes convention addapted from GHC project~\cite{MarPey12}.
+This tutorial comes with a standalone companion code written in Agda 2.3.4\footnote{\url{http://ics.p.lodz.pl/~stolarek/_media/pl:research:dep-typed-wbl-heaps.tar.gz}}. I assume the reader is reading companion code along with the paper. Due to space limitations I elide some proofs that are detailed in the code using Notes convention adapted from GHC project~\cite{MarPey12}.
 
 ``Living'' version of companion code is available at GitHub\footnote{\url{https://github.com/jstolarek/dep-typed-wbl-heaps}} and it may receive updates after the paper is published.
 
