@@ -295,21 +295,21 @@ We see a lot of properties combined using transitivity. In general, if we have t
 While simple to use, combining proofs with transitivity can be not so obvious at first: the intermediate terms being proved are hidden from us and we have to reconstruct them every time we read our proof. Let us then replace usage of transitivity with the following notation, which explicitly shows intermediate proof steps as well as their proofs:
 
 \begin{align*}
-a& ≡[ \prof 1 ]\\
-b& ≡[ \prof 2 ]\\
-c& ≡[ \prof 3 ]\\
-d& ≡[ \prof 4 ]\\
+a&\;{≡}\langle \prof 1 \rangle\\
+b&\;{≡}\langle \prof 2 \rangle\\
+c&\;{≡}\langle \prof 3 \rangle\\
+d&\;{≡}\langle \prof 4 \rangle\\
 e&
 \end{align*}
 \noindent
 Rewriting \texttt{proof-2i} in this notation gives us:
 
 \begin{align*}
-                                \suc (l2 + (r2 + \suc (l1 + r1)))& ≡[ \congr\;\suc ]\\
-{\color{gray} \suc(} l2 + (r2 + \suc (l1 + r1))  {\color{gray})} & ≡[\assoc\;l2\;r2\;(\suc (l1 + r1))]\\
-{\color{gray} \suc(} (l2 + r2) + \suc (l1 + r1)  {\color{gray})} & ≡[ \sym (\Psuc\;(l2 + r2)\;(l1 + r1))]\\
-{\color{gray} \suc(} \suc ((l2 + r2) + (l1 + r1)){\color{gray})} & ≡[ \congr\;\suc\;(\comm\;(l2 + r2)\;(l1 + r1)) ]\\
-{\color{gray} \suc(} \suc ((l1 + r1) + (l2 + r2)){\color{gray})} & ≡[\Psuc\;(l1 + r1)\;(l2 + r2) ]\\
+                                \suc (l2 + (r2 + \suc (l1 + r1)))&\;{≡}\langle \congr\;\suc \rangle\\
+{\color{gray} \suc(} l2 + (r2 + \suc (l1 + r1))  {\color{gray})} &\;{≡}\langle\assoc\;l2\;r2\;(\suc (l1 + r1))\rangle\\
+{\color{gray} \suc(} (l2 + r2) + \suc (l1 + r1)  {\color{gray})} &\;{≡}\langle \sym (\Psuc\;(l2 + r2)\;(l1 + r1))\rangle\\
+{\color{gray} \suc(} \suc ((l2 + r2) + (l1 + r1)){\color{gray})} &\;{≡}\langle \congr\;\suc\;(\comm\;(l2 + r2)\;(l1 + r1)) \rangle\\
+{\color{gray} \suc(} \suc ((l1 + r1) + (l2 + r2)){\color{gray})} &\;{≡}\langle\Psuc\;(l1 + r1)\;(l2 + r2) \rangle\\
 {\color{gray} \suc(} (l1 + r1) + \suc (l2 + r2)  {\color{gray})} &
 \end{align*}
 
