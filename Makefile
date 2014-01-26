@@ -1,10 +1,13 @@
 source = src/*.agda src/Basics/*.agda src/TwoPassMerge/*.agda src/SinglePassMerge/*.agda
 paper = paper/*.tex paper/llncs.cls paper/references.bib paper/splncs.bst
-other = Makefile LICENSE README.md
+other = Makefile LICENSE README.md paper/dep-typed-wbl-heaps.pdf.md5sum
 
 dist: dep-typed-wbl-heaps.tar.gz
 
 pdf: paper/dep-typed-wbl-heaps.pdf
+
+paper/dep-typed-wbl-heaps.pdf.md5sum: paper/dep-typed-wbl-heaps.pdf
+	md5sum paper/dep-typed-wbl-heaps.pdf > paper/dep-typed-wbl-heaps.pdf.md5sum
 
 paper/dep-typed-wbl-heaps.pdf: $(paper)
 	cd paper && \
@@ -21,11 +24,13 @@ clean:
 	find src -name "*.agdai" | xargs rm -f
 	rm -f dep-typed-wbl-heaps.tar.gz
 	find paper -name "*.backup" | xargs rm -f
+	find paper -name "*.tex~" | xargs rm -f
 	rm -f paper/dep-typed-wbl-heaps.aux
 	rm -f paper/dep-typed-wbl-heaps.bbl
 	rm -f paper/dep-typed-wbl-heaps.blg
 	rm -f paper/dep-typed-wbl-heaps.log
 	rm -f paper/dep-typed-wbl-heaps.pdf
+	rm -f paper/dep-typed-wbl-heaps.pdf.md5sum
 
 upload: paper/dep-typed-wbl-heaps.pdf dep-typed-wbl-heaps.tar.gz
 	scp dep-typed-wbl-heaps.tar.gz stolarek@ics:public_html/data/media/pl/research

@@ -3,7 +3,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif
 kileprversion=2
 kileversion=2.0
-lastDocument=dep-typed-wbl-heaps.tex
+lastDocument=1-introduction.tex
 masterDocument=
 name=dep-typed-wbl-heaps
 pkg_extIsRegExp=false
@@ -26,10 +26,10 @@ order=4
 
 [item:1-introduction.tex]
 archive=true
-column=137
+column=167
 encoding=UTF-8
 highlight=LaTeX
-line=42
+line=14
 open=true
 order=3
 
