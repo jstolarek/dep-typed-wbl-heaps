@@ -1,10 +1,9 @@
 Verifying weight biased leftist heaps using dependent types
 ===========================================================
 
-Draft version of paper "Verifying weight biased leftist heaps using
-dependent types" + companion code. This paper is submitted to
-[26th International Conference on Computer Aided Verification (CAV’14)]
-(http://cav2014.iaik.tugraz.at/), Vienna, Austria.
+Tutorial paper "Verifying weight biased leftist heaps using
+dependent types" + companion code. This paper has not been
+published in any peer-reviewed journal.
 
 ## Source organization
 
@@ -27,7 +26,3 @@ Latest version of the source code is available [at github]
 ## License
 
 See LICENSE file for code license.
-
-## Disclaimer
-
-Everything in this repo is a work in progress.
