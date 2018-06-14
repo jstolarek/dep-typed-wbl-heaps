@@ -20,8 +20,7 @@ Code is located in `src/` directory containing three subdirectories:
   * `SinglePassMerge` - implementation based on a single-pass merging
     obtained by inlining all calls to `makeT`.
 
-Latest version of the source code is available [at github]
-(https://github.com/jstolarek/dep-typed-wbl-heaps).
+Latest version of the source code is available [on BitBucket](https://bitbucket.com/jstolarek/dep-typed-wbl-heaps).
 
 ## License
 

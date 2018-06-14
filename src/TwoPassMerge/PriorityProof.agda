@@ -198,7 +198,7 @@ insertB p h = merge (singletonB p) h
 -- However, that function is pretty much useless - it can insert
 -- element with priority p only to a heap that has p as its bound. In
 -- other words if we have Heap zero - ie. a heap that can store any
--- possible priorityu -- the only thing that we can insert into it
+-- possible priority -- the only thing that we can insert into it
 -- using insertB function is zero. That's clearly not what we want. We
 -- need a way to manipulate resulting priority bound.
 
@@ -242,7 +242,7 @@ singletonB' p p≥b = node p one p≥b empty empty
 -- evidence that 5 ≥ 3, then we can convert Heap 5 to Heap 3. Note how
 -- we are prevented from writing wrong code: if we have Heap 3 we
 -- cannot convert it to Heap 5. This is not possible from theoretical
--- point of viwe: Heap 3 may contain 4, but Heap 5 is expected to
+-- point of view: Heap 3 may contain 4, but Heap 5 is expected to
 -- contain elements not smaller than 5. It is also not possible
 -- practically: thanks to our definition of ≥ we can't orivide
 -- evidence that 3 ≥ 5 because we cannot construct value of that type.
